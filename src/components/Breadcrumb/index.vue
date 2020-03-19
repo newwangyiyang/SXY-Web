@@ -59,8 +59,7 @@ export default {
 				<span
 					v-if="item.redirect === 'noRedirect' || index === levelList.length - 1"
 					class="no-redirect"
-					>{{ item.meta.title }}</span
-				>
+				>{{ item.meta.title }}</span>
 				<a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
 			</el-breadcrumb-item>
 		</transition-group>
@@ -71,12 +70,12 @@ export default {
 @import '../../styles/variables.scss';
 .app-breadcrumb.el-breadcrumb {
 	display: inline-block;
-	font-size: 14px;
+	font-size: 12px;
 	line-height: 50px;
 	margin-left: 8px;
 
 	.no-redirect {
-		color: $fontColorBase;
+		color: #999;
 		cursor: text;
 	}
 }

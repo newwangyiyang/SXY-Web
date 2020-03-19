@@ -140,8 +140,6 @@ export const option = {
 
 export const settings = {
   legend: {
-    type: 'scroll',
-    width: 330,
     right: 0,
     pageIconColor: '#808D94',
     textStyle: {
@@ -156,6 +154,6 @@ export const settings = {
     fontWeight: 'normal'
   },
   tooltip: {
-    backgroundColor: '#805FFE',
+    backgroundColor: '#805FFE'
   },
 };

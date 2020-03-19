@@ -41,7 +41,7 @@ export default {
 				:background-color="variables.menuBg"
 				:text-color="'#333'"
 				:unique-opened="false"
-				:active-text-color="'#333'"
+				:active-text-color="'#5490EF'"
 				:collapse-transition="false"
 				mode="vertical"
 				class="side-menu"
@@ -51,9 +51,11 @@ export default {
 					v-for="item in activeRoutes"
 					:key="item.path"
 					:index="`${activePrePath}/${item.path}`"
-					class="nav-menu-item"
-					>{{ item.meta.title }}</el-menu-item
+					class="nav-menu-item flex-center"
 				>
+					<i class="el-icon-message-solid"></i>
+					<span>{{ item.meta.title }}</span>
+				</el-menu-item>
 			</el-menu>
 		</el-scrollbar>
 	</div>
@@ -64,7 +66,7 @@ export default {
 		text-align: center;
 		.nav-menu-item {
 			&.is-active {
-				background-color: #ededed !important;
+				background-color: #f0f5ff !important;
 			}
 		}
 	}

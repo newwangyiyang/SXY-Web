@@ -6,10 +6,13 @@ import {
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
 import {
-  getToken
+  getToken,
+  removeToken
 } from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
-
+import {
+  getPathByRoles
+} from '@/utils/toPathByRoles';
 NProgress.configure({
   showSpinner: false
 }) // NProgress Configuration
@@ -29,8 +32,9 @@ router.beforeEach(async (to, from, next) => {
   if (hasToken) {
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
+      removeToken();
       next({
-        path: '/yunyingzhongxin'
+        path: getPathByRoles()
       })
       NProgress.done()
     } else {

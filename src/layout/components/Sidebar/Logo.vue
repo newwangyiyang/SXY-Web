@@ -11,7 +11,7 @@ export default {
 	data() {
 		return {
 			title: '',
-			logo: 'http://mp.shuxiaoyi.net/upload/config/2019-07-06/logo.956a4e50.png'
+			logo: require('@/assets/img/logo-white.png')
 		};
 	}
 };
@@ -46,7 +46,7 @@ export default {
 	width: 100%;
 	height: 80px;
 	line-height: 80px;
-	background: #202121;
+	background: #5490ef;
 	text-align: center;
 	overflow: hidden;
 
@@ -56,7 +56,7 @@ export default {
 
 		& .sidebar-logo {
 			width: auto;
-			height: 33px;
+			height: 40px;
 			vertical-align: middle;
 			margin-right: 12px;
 		}

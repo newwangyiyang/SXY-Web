@@ -1,6 +1,6 @@
 <script>
 import { validUserPhone } from '@/utils/validate';
-
+import { getPathLogin } from '@/utils/toPathByRoles';
 export default {
 	name: 'Login',
 	data() {
@@ -57,8 +57,8 @@ export default {
 					this.loading = true;
 					this.$store
 						.dispatch('user/login', this.loginForm)
-						.then(() => {
-							this.$router.push({ path: this.redirect || '/yunyingzhongxin' });
+						.then((res) => {
+							this.$router.push({ path: getPathLogin(res.token) });
 							this.loading = false;
 						})
 						.catch(() => {
@@ -76,10 +76,11 @@ export default {
 	<div class="login-container">
 		<section class="login-form-wrap flex-center p-30 flex-space-b">
 			<section class="login-logo">
-				<img src="@/assets/img/login-logo.png" class="w-100p h-100p" alt />
+				<img src="@/assets/img/login-logo.png" class="login-logo-img" alt />
+				<img src="@/assets/img/login-left.png" class="login-left" alt />
 			</section>
 			<section>
-				<h5 class="col-4 f-s-22 m-0 center">书小驿SaaS后台管理系统</h5>
+				<h5 class="col-4 f-s-20 m-0 center">书小驿SaaS后台管理系统</h5>
 				<el-form
 					ref="loginForm"
 					:model="loginForm"
@@ -89,7 +90,7 @@ export default {
 					label-position="left"
 				>
 					<el-form-item prop="username">
-						<span class="svg-container el-icon-mobile-phone col-2 f-s-24"></span>
+						<span class="svg-container el-icon-user-solid col-2 f-s-24"></span>
 						<el-input
 							ref="username"
 							v-model="loginForm.username"
@@ -103,12 +104,12 @@ export default {
 					</el-form-item>
 
 					<el-form-item prop="password">
-						<span class="svg-container el-icon-chat-dot-square col-2 f-s-24"></span>
+						<span class="svg-container el-icon-lock col-2 f-s-24"></span>
 						<el-input
 							:key="passwordType"
 							ref="password"
 							v-model="loginForm.password"
-							type="text"
+							:type="passwordType"
 							placeholder="Password"
 							name="password"
 							tabindex="2"
@@ -117,17 +118,21 @@ export default {
 							@keyup.enter.native="handleLogin"
 						/>
 						<span class="show-pwd" @click="showPwd">
-							<el-button type="text">获取验证码</el-button>
+							<svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
 						</span>
 					</el-form-item>
 					<el-button
 						:loading="loading"
 						type="warning"
+						class="login-btn"
 						style="width:100%;margin-bottom:30px;"
 						@click.native.prevent="handleLogin"
 					>登录</el-button>
 				</el-form>
 			</section>
+		</section>
+		<section class="copyright">
+			<p class="f-s-14 col-0">Copyright ©2018 慧文科技 版权所有 V3.0.0</p>
 		</section>
 		<!-- <el-form
 			ref="loginForm"
@@ -249,6 +254,7 @@ $light_gray: #eee;
 	width: 100%;
 	background: url('../../assets/img/login-bg.png') no-repeat center / cover;
 	overflow: hidden;
+	position: relative;
 
 	.login-form-wrap {
 		width: 800px;
@@ -263,7 +269,31 @@ $light_gray: #eee;
 		border-radius: 10px;
 	}
 	.login-logo {
-		height: 350px;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		padding-top: 39px;
+		.login-logo-img {
+			width: 84px;
+			height: 29px;
+		}
+		.login-left {
+			margin-top: 30px;
+			width: 323px;
+			height: 248px;
+			margin-left: 25px;
+		}
+	}
+
+	.login-btn {
+		background-color: #fbbc0e;
+	}
+
+	.copyright {
+		position: absolute;
+		bottom: 20px;
+		left: 50%;
+		transform: translateX(-50%);
 	}
 
 	.login-form {

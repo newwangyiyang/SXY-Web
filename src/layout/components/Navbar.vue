@@ -28,11 +28,11 @@ export default {
 		},
 		activeMenu() {
 			const path = '/' + this.$route.path.split('/')[1];
-			let route = {};
+			let route = { children: [] };
 			if (whiteRoutePath.includes(path)) {
-				route = publicNavRoutes.find((item) => item.path);
+				route = publicNavRoutes.find((item) => item.path) || {};
 			} else {
-				route = this.navRoutes.find((item) => item.path === path);
+				route = this.navRoutes.find((item) => item.path === path) || {};
 			}
 			this.initActiveRoutes(route);
 			return path;
@@ -93,11 +93,11 @@ export default {
 				<span class="el-icon-office-building col-0 f-s-20"></span>
 				<span class="col-0 f-s-14 m-l-10">雁塔区教育局</span>
 			</div>
-			<div class="flex-center m-l-20 m-r-20 pointer" @click="goPubRoute('/xiaoxipublic')">
+			<div class="flex-center m-l-20 m-r-40 pointer" @click="goPubRoute('/xiaoxipublic')">
 				<span class="el-icon-bell col-0 f-s-20"></span>
 				<span class="col-0 f-s-14 m-l-10">消息</span>
 			</div>
-			<el-dropdown class="avatar-container">
+			<el-dropdown class="avatar-container pointer">
 				<div class="avatar-wrapper h-80 flex-center">
 					<img :src="avatar + '?imageView2/1/w/80/h/80'" class="w-30 h-30 brs15" />
 					<span class="col-0 f-s-14 m-l-8">书小二</span>
@@ -126,7 +126,7 @@ export default {
 	height: 80px;
 	overflow: hidden;
 	position: relative;
-	background: #202121;
+	background: #5490ef;
 	box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 	display: flex;
 	justify-content: space-between;
@@ -142,7 +142,7 @@ export default {
 			height: 80px;
 			line-height: 80px;
 			&.is-active {
-				background-color: #5f5f5f !important;
+				background-color: #6da4ff !important;
 			}
 		}
 	}

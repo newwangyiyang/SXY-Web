@@ -213,21 +213,41 @@ export const navRoutes = [{
   //     }
   //   }]
   // },
-  // {
-  //   path: '/xitongpeizhi',
-  //   component: Layout,
-  //   meta: {
-  //     title: '系统配置'
-  //   },
-  //   children: [{
-  //     path: 'index',
-  //     name: 'tushutongji',
-  //     component: () => import('@/views/form/index'),
-  //     meta: {
-  //       title: '图书统计'
-  //     }
-  //   }]
-  // },
+  {
+    path: '/xitongpeizhi',
+    component: Layout,
+    name: 'Xitongpeizhi',
+    redirect: '/xitongpeizhi/index',
+    meta: {
+      title: '系统配置',
+      roles: ['admin']
+    },
+    children: [{
+        path: 'index',
+        name: 'Jueseguanli',
+        component: () => import('@/views/xitongpeizhi/jueseguanli'),
+        meta: {
+          title: '角色管理'
+        }
+      },
+      {
+        path: 'guanliyuan',
+        name: 'Guanliyuan',
+        component: () => import('@/views/xitongpeizhi/guanliyuan'),
+        meta: {
+          title: '管理员'
+        }
+      },
+      {
+        path: 'jigoushezhi',
+        name: 'Jigoushezhi',
+        component: () => import('@/views/xitongpeizhi/jigoushezhi'),
+        meta: {
+          title: '机构设置'
+        }
+      },
+    ]
+  },
   // {
   //   path: '/fenjigouguanli',
   //   component: Layout,
@@ -243,6 +263,33 @@ export const navRoutes = [{
   //     }
   //   }]
   // },
+  {
+    path: '/superShujudapan',
+    component: Layout,
+    redirect: '/superShujudapan/index',
+    name: 'SuperShujudapan',
+    meta: {
+      title: '机构管理',
+      roles: ['superAdmin']
+    },
+    children: [{
+        path: 'index',
+        name: 'Shujudapan',
+        component: () => import('@/views/superShujudapan/shujudapan'),
+        meta: {
+          title: '数据大盘'
+        }
+      },
+      {
+        path: 'fenguanzhanghao',
+        name: 'Fenguanzhanghao',
+        component: () => import('@/views/superShujudapan/fenguanzhanghao'),
+        meta: {
+          title: '分馆账号'
+        }
+      },
+    ]
+  }
 ]
 
 export const publicNavRoutes = [{
@@ -293,8 +340,8 @@ export const constantRoutes = [{
   },
   {
     path: '/',
-    redirect: '/yunyingzhongxin'
-  },
+    redirect: '/login'
+  }
 ]
 
 /**
