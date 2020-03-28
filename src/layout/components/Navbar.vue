@@ -6,6 +6,7 @@ import variables from '@/styles/variables.scss';
 import { navRoutes, publicNavRoutes } from '@/router';
 
 const whiteRoutePath = ['/xiaoxipublic'];
+const blackRoutePath = ['/superShujudapan'];
 
 export default {
 	components: {
@@ -14,7 +15,7 @@ export default {
 	},
 	inheritAttrs: true,
 	computed: {
-		...mapGetters(['sidebar', 'avatar', 'roles']),
+		...mapGetters(['sidebar', 'avatar', 'name', 'orgName', 'roles']),
 		variables() {
 			return variables;
 		},
@@ -22,9 +23,10 @@ export default {
 			return !this.sidebar.opened;
 		},
 		navRoutes() {
-			return navRoutes.filter(
+			const routes = navRoutes.filter(
 				(route) => route.meta && route.meta.roles.some((role) => this.roles.includes(role))
 			);
+			return routes.filter((item) => !blackRoutePath.includes(item.path));
 		},
 		activeMenu() {
 			const path = '/' + this.$route.path.split('/')[1];
@@ -47,9 +49,9 @@ export default {
 			this.$router.push(`/login?redirect=${this.$route.fullPath}`);
 		},
 		selectHandler(key) {
-			this.$router.push(`${key}/index`);
 			const route = this.navRoutes.find((item) => key.startsWith(item.path));
 			this.initActiveRoutes(route);
+			this.$router.push(`${key}`);
 		},
 		initActiveRoutes(route) {
 			this.$store.commit('routes/INIT_ACTIVE_ROUTES', route.children);
@@ -84,23 +86,30 @@ export default {
 					:key="item.path"
 					:index="item.path"
 					class="nav-menu-item"
-				>{{ item.meta.title }}</el-menu-item>
+					>{{ item.meta.title }}</el-menu-item
+				>
 			</el-menu>
 		</div>
 
 		<div class="right-menu h-100p flex">
 			<div class="flex-center">
-				<span class="el-icon-office-building col-0 f-s-20"></span>
-				<span class="col-0 f-s-14 m-l-10">雁塔区教育局</span>
+				<span class="iconfont iconiconqyxx f-s-20 col-0"></span>
+				<span class="col-0 f-s-14 m-l-10">{{ orgName }}</span>
 			</div>
 			<div class="flex-center m-l-20 m-r-40 pointer" @click="goPubRoute('/xiaoxipublic')">
-				<span class="el-icon-bell col-0 f-s-20"></span>
+				<span class="iconfont iconxiaoxi f-s-20 col-0"></span>
 				<span class="col-0 f-s-14 m-l-10">消息</span>
 			</div>
 			<el-dropdown class="avatar-container pointer">
 				<div class="avatar-wrapper h-80 flex-center">
-					<img :src="avatar + '?imageView2/1/w/80/h/80'" class="w-30 h-30 brs15" />
-					<span class="col-0 f-s-14 m-l-8">书小二</span>
+					<img
+						:src="
+							avatar ||
+								'http://pic1.zhimg.com/50/v2-af12f7b6f7eb2f2f5f7e2f3b7880cf01_hd.jpg'
+						"
+						class="w-30 h-30 brs15"
+					/>
+					<span class="col-0 f-s-14 m-l-8">{{ name }}</span>
 				</div>
 				<!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -->
 				<el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -110,7 +119,11 @@ export default {
 							<span class="col-2 f-s-14 m-l-5">设置</span>
 						</el-dropdown-item>
 					</router-link>
-					<el-dropdown-item class="flex-center inline-block" divided @click.native="logout">
+					<el-dropdown-item
+						class="flex-center inline-block"
+						divided
+						@click.native="logout"
+					>
 						<span class="el-icon-receiving f-s-20"></span>
 						<span class="col-2 f-s-14 m-l-5">退出</span>
 					</el-dropdown-item>

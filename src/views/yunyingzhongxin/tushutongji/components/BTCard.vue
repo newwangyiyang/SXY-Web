@@ -5,34 +5,38 @@ export default {
 		index: {
 			type: Number,
 			required: true
+		},
+		item: {
+			type: Object,
+			required: true
 		}
 	}
 };
 </script>
 <template>
 	<div class="bt-card-wrap p-20 flex-center flex-left pointer">
-		<img class="card-img" src="@/assets/img/list-item.png" alt />
+		<img class="card-img" :src="item.coverimg" alt />
 		<div class="p-t-5 m-l-20 flex-col h-100p flex1">
 			<section class="flex-center flex-space-b">
-				<span class="f-s-16 col-4">关键提问</span>
+				<span class="f-s-16 col-4">{{ item.title }}</span>
 				<div>
 					<img v-if="index === 1" src="@/assets/img/bd1.png" class="w-24 h-21" />
 					<img v-else-if="index === 2" src="@/assets/img/bd2.png" class="w-24 h-21" />
 					<img v-else-if="index === 3" src="@/assets/img/bd3.png" class="w-24 h-21" />
 					<div v-else class="bd-wrap flex-center">
 						<div class="bd-circel flex-center">
-							<span class="f-s-12 col-9">{{index}}</span>
+							<span class="f-s-12 col-9">{{ index }}</span>
 						</div>
 					</div>
 				</div>
 			</section>
 			<section class="flex-center flex-space-b m-t-14">
 				<span class="f-s-14 col-2">借阅次数</span>
-				<span class="f-s-14 col-2">65次</span>
+				<span class="f-s-14 col-2">{{ item.borrow_count }}次</span>
 			</section>
 			<section class="flex-center flex-space-b m-t-3">
 				<span class="f-s-14 col-2">可借本书</span>
-				<span class="f-s-14 col-2">4本</span>
+				<span class="f-s-14 col-2">{{ item.borrow_count_rest }}本</span>
 			</section>
 		</div>
 	</div>

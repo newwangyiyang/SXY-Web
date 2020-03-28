@@ -1,31 +1,31 @@
 <script>
-import { validUserPhone } from '@/utils/validate';
+// import { validUserPhone } from '@/utils/validate';
 import { getPathLogin } from '@/utils/toPathByRoles';
 export default {
 	name: 'Login',
 	data() {
-		const validateUserPhone = (rule, value, callback) => {
-			if (!validUserPhone(value)) {
-				callback(new Error('请输入正确的手机号'));
-			} else {
-				callback();
-			}
-		};
-		const validatePassword = (rule, value, callback) => {
-			if (value.length < 6) {
-				callback(new Error('验证码为6位数字'));
-			} else {
-				callback();
-			}
-		};
+		// const validateUserPhone = (rule, value, callback) => {
+		// 	if (!validUserPhone(value)) {
+		// 		callback(new Error('请输入正确的手机号'));
+		// 	} else {
+		// 		callback();
+		// 	}
+		// };
+		// const validatePassword = (rule, value, callback) => {
+		// 	if (value.length < 6) {
+		// 		callback(new Error('验证码为6位数字'));
+		// 	} else {
+		// 		callback();
+		// 	}
+		// };
 		return {
 			loginForm: {
-				username: '18888888888',
-				password: '111111'
+				username: 'hw',
+				password: 'hw'
 			},
 			loginRules: {
-				username: [{ required: true, trigger: 'blur', validator: validateUserPhone }],
-				password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+				username: [{ required: true, trigger: 'blur' }],
+				password: [{ required: true, trigger: 'blur' }]
 			},
 			loading: false,
 			passwordType: 'password',
@@ -58,7 +58,7 @@ export default {
 					this.$store
 						.dispatch('user/login', this.loginForm)
 						.then((res) => {
-							this.$router.push({ path: getPathLogin(res.token) });
+							this.$router.push({ path: getPathLogin(res) });
 							this.loading = false;
 						})
 						.catch(() => {
@@ -118,7 +118,9 @@ export default {
 							@keyup.enter.native="handleLogin"
 						/>
 						<span class="show-pwd" @click="showPwd">
-							<svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
+							<svg-icon
+								:icon-class="passwordType === 'password' ? 'eye' : 'eye-open'"
+							/>
 						</span>
 					</el-form-item>
 					<el-button
@@ -127,7 +129,8 @@ export default {
 						class="login-btn"
 						style="width:100%;margin-bottom:30px;"
 						@click.native.prevent="handleLogin"
-					>登录</el-button>
+						>登录</el-button
+					>
 				</el-form>
 			</section>
 		</section>

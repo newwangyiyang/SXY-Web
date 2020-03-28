@@ -53,7 +53,7 @@ export default {
 					:index="`${activePrePath}/${item.path}`"
 					class="nav-menu-item flex-center"
 				>
-					<i class="el-icon-message-solid"></i>
+					<i :class="['iconfont f-s-18 m-r-5', item.meta.icon || 'el-icon-star-off']"></i>
 					<span>{{ item.meta.title }}</span>
 				</el-menu-item>
 			</el-menu>
@@ -61,6 +61,7 @@ export default {
 	</div>
 </template>
 <style lang="scss">
+@import '~@/styles/mixins.scss';
 .side-bar-wrap {
 	.side-menu {
 		text-align: center;

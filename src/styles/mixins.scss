@@ -193,3 +193,17 @@
   box-sizing: border-box;
   position: relative;
 }
+
+.content-wrap {
+  height: 100%;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.input-title {
+  width: 60px;
+  margin-right: 10px;
+  font-size: 14px;
+  color: #333;
+}

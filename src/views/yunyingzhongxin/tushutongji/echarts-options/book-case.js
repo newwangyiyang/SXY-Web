@@ -159,6 +159,6 @@ export const settings = {
     show: true,
     type: 'slider',
     start: 0,
-    end: 30
+    end: 80
   }
 }

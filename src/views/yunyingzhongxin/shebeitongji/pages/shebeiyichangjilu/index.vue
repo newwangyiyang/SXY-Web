@@ -1,32 +1,14 @@
 <script>
+import TableHeader from '@/components/TableHeader';
+import mixins from '@/utils/mixins-vue';
 export default {
-	name: 'Shebeiyichangjilu',
+	name: 'Shebeiyichang',
+	components: {
+		TableHeader
+	},
+	mixins,
 	data() {
 		return {
-			checkList: [],
-			optionsState: [
-				{
-					value: '选项1',
-					label: '黄金糕'
-				},
-				{
-					value: '选项2',
-					label: '双皮奶'
-				},
-				{
-					value: '选项3',
-					label: '蚵仔煎'
-				},
-				{
-					value: '选项4',
-					label: '龙须面'
-				},
-				{
-					value: '选项5',
-					label: '北京烤鸭'
-				}
-			],
-			valueState: '',
 			chooseDate: '',
 			tableData: [
 				{
@@ -80,29 +62,62 @@ export default {
 					address: '1'
 				}
 			],
-			currentPage: 3
+			currentPage: 5,
+			options: [
+				{
+					value: '0',
+					label: '全部状态'
+				},
+				{
+					value: '1',
+					label: '教育类'
+				},
+				{
+					value: '2',
+					label: '科技类'
+				},
+				{
+					value: '3',
+					label: '科学类'
+				},
+				{
+					value: '4',
+					label: '健康类'
+				},
+				{
+					value: '5',
+					label: '法律类'
+				}
+			],
+			value: '0'
 		};
 	},
 	methods: {
-		handleCurrentChange(currentPage) {}
+		handleCurrentChange(currentPage) {},
+		// 1、导出当前按钮
+		handlerExportSelected() {
+			console.log('handlerExportSelected');
+		},
+		// 2、导出全部按钮
+		handlerExportAll() {
+			console.log('handlerExportAll');
+		}
 	}
 };
 </script>
 <template>
 	<div class="tsjysj-wrap">
 		<div class="content-wrap">
-			<section class="brs-t-l10 brs-t-r10 bg-5 h-60 flex-center flex-space-b p-l-30 p-r-30">
-				<span class="col-1 f-s-18">设备异常记录</span>
-				<section>
-					<el-button plain type="info" size="small" icon="el-icon-document">导出当前</el-button>
-					<el-button plain type="info" size="small" icon="el-icon-document">导出全部</el-button>
-				</section>
-			</section>
+			<TableHeader
+				title="设备异常"
+				@handlerExportSelected="handlerExportSelected"
+				@handlerExportAll="handlerExportAll"
+			/>
 			<section class="p-20 flex-center flex-space-b">
 				<section>
-					<el-select v-model="valueState" size="small" placeholder="处理状态">
+					<el-select v-model="value" class="m-r-20" size="small">
 						<el-option
-							v-for="item in optionsState"
+							v-for="item in options"
 							:key="item.value"
 							:label="item.label"
 							:value="item.value"
@@ -111,32 +126,24 @@ export default {
 					<el-date-picker
 						v-model="chooseDate"
 						type="daterange"
-						range-separator="-"
+						range-separator="至"
 						start-placeholder="开始日期"
 						end-placeholder="结束日期"
+						format="yyyy / MM / dd"
+						value-format="yyyy-MM-dd"
+						:clearable="false"
 						size="small"
-						class="m-l-20"
 					></el-date-picker>
 				</section>
-				<section class="m-l-30">
+				<section>
 					<el-button type="primary" size="small">查询</el-button>
 					<el-button size="small">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
 				<el-table
-					:cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333'
-					}"
-					:header-cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333',
-						backgroundColor: '#D8D8D8',
-                        fontWeight: 'normal'
-					}"
+					:cell-style="cellStyle"
+					:header-cell-style="headerCellStyle"
 					:data="tableData"
 					highlight-current-row
 					border
@@ -144,14 +151,21 @@ export default {
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="date" label="书柜名称"></el-table-column>
-					<el-table-column prop="name" label="故障类型"></el-table-column>
-					<el-table-column prop="address" label="故障时间"></el-table-column>
-					<el-table-column prop="address" label="处理时间"></el-table-column>
-					<el-table-column prop="address" label="处理状态">
+					<el-table-column prop="name" label="设备名称"></el-table-column>
+					<el-table-column prop="date" label="故障类型"></el-table-column>
+					<el-table-column prop="date" label="故障时间"></el-table-column>
+					<el-table-column prop="date" label="处理时间"></el-table-column>
+					<el-table-column label="处理状态">
 						<template v-slot="scope">
 							<el-dropdown>
-								<span class="col-6 f-s-12" @click="() => {scope}">
+								<span
+									class="col-6 f-s-12"
+									@click="
+										() => {
+											scope;
+										}
+									"
+								>
 									未处理
 									<i class="el-icon-arrow-down el-icon--right"></i>
 								</span>
@@ -170,7 +184,7 @@ export default {
 					<el-table-column prop="address" label="处理人"></el-table-column>
 				</el-table>
 			</section>
-			<section class="p-l-20 p-r-20 p-b-20 flex-center flex-space-b">
+			<section class="p-r-20 p-b-20 flex-center flex-space-b">
 				<el-pagination
 					:current-page.sync="currentPage"
 					:page-size="100"
@@ -189,38 +203,11 @@ export default {
 @import '~@/styles/mixins.scss';
 .tsjysj-wrap {
 	background-color: #fff;
-	padding: 20px;
-	.content-wrap {
-		height: 100%;
-		border: 1px solid #d4d4d4;
-		border-radius: 10px;
-		overflow: hidden;
-	}
+
 	.sg-choose-wrap {
-		height: 33px;
+		height: 40px;
 		border: 1px solid #dcdfe6;
 		border-radius: 6px;
-	}
-	.total-table-wrap {
-		::v-deep .el-table {
-			border: 0;
-			th,
-			tr,
-			td {
-				border: 0;
-				background-color: #fff;
-			}
-			&::before {
-				height: 0px;
-			}
-			&::after {
-				width: 0;
-			}
-
-			.el-table__fixed:before {
-				height: 0;
-			}
-		}
 	}
 }
 </style>

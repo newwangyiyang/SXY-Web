@@ -28,6 +28,16 @@ export const option = {
 }
 
 export const settings = {
+  legend: {
+    right: 20,
+    top: 'middle',
+    orient: 'vertical',
+    textStyle: {
+      color: '#818E95',
+      fontStyle: 'normal',
+      fontSize: 12
+    }
+  },
   tooltip: {
     backgroundColor: '#805FFE',
   },

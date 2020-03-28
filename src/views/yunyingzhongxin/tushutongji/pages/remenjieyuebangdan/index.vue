@@ -1,141 +1,160 @@
 <script>
+import TableHeader from '@/components/TableHeader';
+import mixins from '@/utils/mixins-vue';
+import { bookBorrowRankPage } from '@/api/yunyingzhongxin';
+const limit = 10;
 export default {
 	name: 'Remenjieyuebangdan',
+	components: {
+		TableHeader
+	},
+	mixins,
 	data() {
 		return {
-			chooseDate: '',
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
-			currentPage: 5
+			// 开始日期结束日期
+			chooseDate: [],
+			// 7天或30天按钮
+			chooseSevenOrThirty: 'seven',
+			// 表格数据
+			hotBorrowData: [],
+			pageSize: limit,
+			// 总数
+			totalRow: 0,
+			currentPage: 1
 		};
 	},
+	watch: {
+		chooseDate() {
+			this.currentPage = 1;
+			this.initHotBorrowDataList();
+		}
+	},
+	mounted() {
+		this.chooseDate = this.initChooseDate();
+		this.initHotBorrowDataList();
+	},
 	methods: {
-		handleCurrentChange(currentPage) {}
+		handleCurrentChange() {
+			this.initHotBorrowDataList();
+		},
+		// 1、导出当前按钮
+		handlerExportSelected() {
+			console.log('handlerExportSelected');
+		},
+		// 2、导出全部按钮
+		handlerExportAll() {
+			console.log('handlerExportAll');
+		},
+		// 日期选择
+		handlerDateOrDay(value) {
+			if (this.chooseSevenOrThirty === value) return;
+			const dayStrArr = ['seven', 'thirty'];
+			if (dayStrArr.includes(value)) {
+				this.chooseSevenOrThirty = value;
+				this.chooseDate = this.changeChooseDateHandler(value);
+			} else {
+				this.chooseSevenOrThirty = '';
+			}
+		},
+		// 分页数据获取
+		async initHotBorrowDataList() {
+			const { data } = await bookBorrowRankPage({
+				startdate: this.chooseDate[0],
+				enddate: this.chooseDate[1],
+				pageNo: this.currentPage,
+				pageSize: this.pageSize
+			});
+			this.hotBorrowData = data.list;
+			this.totalRow = data.totalRow;
+		}
 	}
 };
 </script>
 <template>
 	<div class="tsjysj-wrap">
 		<div class="content-wrap">
-			<section class="brs-t-l10 brs-t-r10 bg-5 h-60 flex-center flex-space-b p-l-30 p-r-30">
-				<span class="col-1 f-s-18">热门借阅榜单</span>
-				<section>
-					<el-button plain type="info" size="small" icon="el-icon-document"
-						>导出当前</el-button
-					>
-					<el-button plain type="info" size="small" icon="el-icon-document"
-						>导出全部</el-button
-					>
-				</section>
-			</section>
+			<TableHeader
+				title="热门借阅榜单"
+				@handlerExportSelected="handlerExportSelected"
+				@handlerExportAll="handlerExportAll"
+			/>
 			<section class="p-20 flex-center flex-space-b">
 				<section>
-					<el-button size="small">近7天</el-button>
-					<el-button size="small" class="m-r-10">近30天</el-button>
+					<el-button
+						size="small"
+						:type="chooseSevenOrThirty === 'seven' ? 'primary' : 'default'"
+						@click="handlerDateOrDay('seven')"
+						>近7天</el-button
+					>
+					<el-button
+						size="small"
+						:type="chooseSevenOrThirty === 'thirty' ? 'primary' : 'default'"
+						class="m-r-10"
+						@click="handlerDateOrDay('thirty')"
+						>近30天</el-button
+					>
 					<el-date-picker
 						v-model="chooseDate"
 						type="daterange"
-						range-separator="-"
+						range-separator="至"
 						start-placeholder="开始日期"
 						end-placeholder="结束日期"
+						format="yyyy / MM / dd"
+						value-format="yyyy-MM-dd"
 						size="small"
-					>
-					</el-date-picker>
+						:clearable="false"
+						@change="handlerDateOrDay"
+					></el-date-picker>
 				</section>
 				<section>
 					<el-button type="primary" size="small">查询</el-button>
 					<el-button size="small">重置</el-button>
 				</section>
 			</section>
-			<section class="p-l-20 p-r-20 p-b-20">
+			<section class="p-b-20">
 				<el-table
-					:cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333'
-					}"
-					:header-cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333',
-						backgroundColor: '#D8D8D8'
-					}"
-					:data="tableData"
+					:cell-style="cellStyle"
+					:header-cell-style="headerCellStyle"
+					:data="hotBorrowData"
 					highlight-current-row
 					border
 					style="width: 100%"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="name" label="图书类别"></el-table-column>
-					<el-table-column prop="date" label="时间"></el-table-column>
-					<el-table-column prop="address" label="图书总量"></el-table-column>
-					<el-table-column prop="address" label="总量占比"></el-table-column>
-					<el-table-column prop="address" label="借出数量"></el-table-column>
-					<el-table-column prop="address" label="借出占比"></el-table-column>
+					<el-table-column prop="title" label="题名"></el-table-column>
+					<el-table-column prop="author" label="作者"></el-table-column>
+					<el-table-column prop="publisher" label="出版社"></el-table-column>
+					<el-table-column prop="isbn" label="ISBN"></el-table-column>
+					<el-table-column prop="callno" label="条码号"></el-table-column>
+					<el-table-column prop="item" label="索书号"></el-table-column>
+					<el-table-column prop="borrow_count" label="累计借阅"></el-table-column>
+					<el-table-column label="借阅记录">
+						<template v-slot="{ row }">
+							<el-button
+								size="small"
+								type="text"
+								@click="
+									() => {
+										row;
+									}
+								"
+								>查看</el-button
+							>
+						</template>
+					</el-table-column>
 				</el-table>
 			</section>
-			<section class="p-l-20 p-r-20 p-b-20 flex-center flex-space-b">
+			<section class="p-r-20 p-b-10 flex-center flex-space-b">
 				<el-pagination
 					:current-page.sync="currentPage"
-					:page-size="100"
+					:page-size="pageSize"
 					layout="prev, pager, next, jumper"
-					:total="999"
+					:total="totalRow"
 					background
 					@current-change="handleCurrentChange"
-				>
-				</el-pagination>
-				<span class="f-s-12 col-2">共123条记录</span>
+				></el-pagination>
+				<span class="f-s-12 col-2">共{{ totalRow }}条记录</span>
 			</section>
 		</div>
 	</div>

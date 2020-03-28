@@ -1,14 +1,11 @@
 import router from './router'
 import store from './store'
+import s from 'store2';
 import {
   Message
 } from 'element-ui'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
-import {
-  getToken,
-  removeToken
-} from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
 import {
   getPathByRoles
@@ -27,12 +24,15 @@ router.beforeEach(async (to, from, next) => {
   document.title = getPageTitle(to.meta.title)
 
   // determine whether the user has logged in
-  const hasToken = getToken()
+  const hasUser = s('user')
 
-  if (hasToken) {
+  if (hasUser) {
+    if (!store.getters.orgName) {
+      store.commit('user/SET_STATE_BY_TOKEN', hasUser);
+    }
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
-      removeToken();
+      s(false)
       next({
         path: getPathByRoles()
       })
@@ -46,9 +46,11 @@ router.beforeEach(async (to, from, next) => {
         try {
           // get user info
           // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
-          const {
-            roles
-          } = await store.dispatch('user/getInfo')
+          // const {
+          //   roles
+          // } = await store.dispatch('user/getInfo')
+          const roles = hasUser.role_type === 2 ? ['admin'] : ['superAdmin'];
+          store.commit('user/SET_ROLES', roles);
 
           // generate accessible routes map based on roles
           const accessRoutes = await store.dispatch('permission/generateRoutes', roles)

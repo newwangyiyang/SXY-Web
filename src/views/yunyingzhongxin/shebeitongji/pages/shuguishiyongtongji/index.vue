@@ -1,9 +1,24 @@
 <script>
+import TableHeader from '@/components/TableHeader';
+import { getCollectionList } from '@/api/yunyingzhongxin';
+import mixins from '@/utils/mixins-vue';
 export default {
-	name: 'Shuguishiyongtongji',
+	name: 'Shebeishiyongtongji',
+	components: {
+		TableHeader
+	},
+	mixins,
 	data() {
 		return {
-			checkList: [],
+			// 馆藏地全选控制
+			checkAll: true,
+			checkedGCList: [],
+			guancangList: [],
+			isIndeterminate: false,
+			// 开始日期结束日期
+			chooseDate: [],
+			// 7天或30天按钮
+			chooseSevenOrThirty: 'seven',
 			tableData: [
 				{
 					date: '2016-05-02',
@@ -58,57 +73,92 @@ export default {
 			],
 			totalTableData: [
 				{
-					title: '累计',
-					date: '2016-05-02',
-					name: '王小虎',
+					title: '合计',
+					name: '100',
 					address: '1'
 				}
 			]
 		};
 	},
+	mounted() {
+		this.initCollectionList();
+	},
 	methods: {
-		handleCurrentChange(currentPage) {}
+		// 馆藏地列表
+		async initCollectionList() {
+			const { data } = await getCollectionList();
+			this.chooseDate = this.initChooseDate();
+			this.checkedGCList = data.map((item) => item.id);
+			this.guancangList = data;
+		},
+		// 馆藏地全选按钮控制
+		handleCheckAllChange(val) {
+			this.checkedGCList = val ? this.guancangList.map((item) => item.id) : [];
+			this.isIndeterminate = false;
+		},
+		handleCheckedCitiesChange(value) {
+			let checkedCount = value.length;
+			this.checkAll = checkedCount === this.guancangList.length;
+			this.isIndeterminate = checkedCount > 0 && checkedCount < this.guancangList.length;
+		},
+		// 日期选择
+		handlerDateOrDay(value) {
+			if (value === this.chooseSevenOrThirty) return;
+			const dayStrArr = ['seven', 'thirty'];
+			if (dayStrArr.includes(value)) {
+				this.chooseSevenOrThirty = value;
+				this.chooseDate = this.changeChooseDateHandler(value);
+			} else {
+				this.chooseSevenOrThirty = '';
+			}
+		},
+		// 1、导出当前按钮
+		handlerExportSelected() {
+			console.log('handlerExportSelected');
+		},
+		// 2、导出全部按钮
+		handlerExportAll() {
+			console.log('handlerExportAll');
+		}
 	}
 };
 </script>
 <template>
 	<div class="tsjysj-wrap">
 		<div class="content-wrap">
-			<section class="brs-t-l10 brs-t-r10 bg-5 h-60 flex-center flex-space-b p-l-30 p-r-30">
-				<span class="col-1 f-s-18">书柜使用统计</span>
-				<section>
-					<el-button plain type="info" size="small" icon="el-icon-document">导出当前</el-button>
-					<el-button plain type="info" size="small" icon="el-icon-document">导出全部</el-button>
-				</section>
-			</section>
+			<TableHeader
+				title="设备使用统计"
+				@handlerExportSelected="handlerExportSelected"
+				@handlerExportAll="handlerExportAll"
+			/>
 			<section class="p-20 flex-center flex-space-b">
-				<div class="sg-choose-wrap col-1 flex1 f-s-14 flex-center p-l-20 flex-left">
-					<span class="m-r-30 col-1">书柜选择</span>
-					<el-checkbox-group v-model="checkList">
-						<el-checkbox label="全部书柜"></el-checkbox>
-						<el-checkbox label="江苏省知识产权局01号柜"></el-checkbox>
-						<el-checkbox label="江苏省知识产权局02号柜"></el-checkbox>
+				<div class="sg-choose-wrap flex1 col-1 f-s-14 flex-center p-l-20 flex-left">
+					<span class="m-r-30 col-1">设备选择</span>
+					<el-checkbox
+						v-model="checkAll"
+						:indeterminate="isIndeterminate"
+						@change="handleCheckAllChange"
+						>全部设备</el-checkbox
+					>
+					<el-checkbox-group
+						v-model="checkedGCList"
+						class="m-l-20"
+						@change="handleCheckedCitiesChange"
+					>
+						<el-checkbox v-for="gc in guancangList" :key="gc" :label="gc">{{
+							gc
+						}}</el-checkbox>
 					</el-checkbox-group>
 				</div>
-				<section class="m-l-30">
+				<section class="search-btn">
 					<el-button type="primary" size="small">查询</el-button>
 					<el-button size="small">重置</el-button>
 				</section>
 			</section>
-			<section class="p-b-20">
+			<section>
 				<el-table
-					:cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333'
-					}"
-					:header-cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333',
-						backgroundColor: '#D8D8D8',
-                        fontWeight: 'normal'
-					}"
+					:cell-style="cellStyle"
+					:header-cell-style="headerCellStyle"
 					:data="tableData"
 					highlight-current-row
 					border
@@ -116,38 +166,77 @@ export default {
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="date" label="书柜名称"></el-table-column>
-					<el-table-column prop="name" label="累计运行天数"></el-table-column>
-					<el-table-column prop="address" label="离线时间"></el-table-column>
-					<el-table-column prop="address" label="登录次数"></el-table-column>
-					<el-table-column prop="address" label="借书次数"></el-table-column>
-					<el-table-column prop="address" label="归还次数"></el-table-column>
-				</el-table>
-			</section>
-			<section class="total-table-wrap bg-5">
-				<el-table
-					:cell-style="{
-						textAlign: 'center',
-						fontSize: 14,
-						color: '#333',
-						backgroundColor: '#D8D8D8'
-					}"
-					:data="totalTableData"
-					:show-header="false"
-					highlight-current-row
-					border
-					style="width: 100%"
-				>
-					<el-table-column prop="title" width="110" label="累计"></el-table-column>
-					<el-table-column prop="date" label="书柜名称"></el-table-column>
-					<el-table-column prop="name" label="累计运行天数"></el-table-column>
-					<el-table-column prop="address" label="离线时间"></el-table-column>
+					<el-table-column prop="date" label="设备名称" width="200"></el-table-column>
+					<el-table-column prop="date" label="累计运行天数"></el-table-column>
+					<el-table-column prop="name" label="离线时间"></el-table-column>
 					<el-table-column prop="address" label="登录次数"></el-table-column>
 					<el-table-column prop="address" label="借书次数"></el-table-column>
 					<el-table-column prop="address" label="归还次数"></el-table-column>
 				</el-table>
 			</section>
 		</div>
+		<section class="total-table-wrap bg-5 m-t-20">
+			<el-table
+				:cell-style="{
+					textAlign: 'center',
+					fontSize: 14,
+					color: '#333',
+					backgroundColor: '#EEF0F0',
+					padding: 0
+				}"
+				:data="totalTableData"
+				:show-header="false"
+				highlight-current-row
+				border
+				style="width: 100%"
+			>
+				<el-table-column width="110">
+					<template v-slot="{ row }">
+						<div>
+							<span>{{ row.title }}</span>
+						</div>
+					</template>
+				</el-table-column>
+				<el-table-column width="200">
+					<template>-</template>
+				</el-table-column>
+				<el-table-column>
+					<template v-slot="{ row }">
+						<div class="flex-center flex-col flex-space-a">
+							<span>累计运行天数</span>
+							<span class="f-s-20">{{ row.name }}</span>
+						</div>
+					</template>
+				</el-table-column>
+				<el-table-column>
+					<template>-</template>
+				</el-table-column>
+				<el-table-column>
+					<template v-slot="{ row }">
+						<div class="flex-center flex-col flex-space-a">
+							<span>登录次数</span>
+							<span class="f-s-20">{{ row.name }}</span>
+						</div>
+					</template>
+				</el-table-column>
+				<el-table-column>
+					<template v-slot="{ row }">
+						<div class="flex-center flex-col flex-space-a">
+							<span>借书次数</span>
+							<span class="f-s-20">{{ row.name }}</span>
+						</div>
+					</template>
+				</el-table-column>
+				<el-table-column>
+					<template v-slot="{ row }">
+						<div class="flex-center flex-col flex-space-a">
+							<span>归还次数</span>
+							<span class="f-s-20">{{ row.name }}</span>
+						</div>
+					</template>
+				</el-table-column>
+			</el-table>
+		</section>
 	</div>
 </template>
 
@@ -155,19 +244,22 @@ export default {
 @import '~@/styles/mixins.scss';
 .tsjysj-wrap {
 	background-color: #fff;
-	padding: 20px;
 	.content-wrap {
 		height: 100%;
 		border: 1px solid #d4d4d4;
-		border-radius: 10px;
+		border-radius: 8px;
 		overflow: hidden;
 	}
 	.sg-choose-wrap {
-		height: 33px;
+		height: 34px;
 		border: 1px solid #dcdfe6;
 		border-radius: 6px;
 	}
 	.total-table-wrap {
+		padding-top: 20px;
+		padding-bottom: 20px;
+		border-radius: 8px;
+		overflow: hidden;
 		::v-deep .el-table {
 			border: 0;
 			th,
@@ -187,6 +279,13 @@ export default {
 				height: 0;
 			}
 		}
+	}
+	.search-btn {
+		width: 120px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-left: 20px;
 	}
 }
 </style>

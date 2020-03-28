@@ -76,7 +76,7 @@ export default {
 			height: 10px;
 			width: 10px;
 			border-radius: 5px;
-			background-color: #759cff;
+			background-color: #fbbc0e;
 		}
 		&.isRead {
 			span {

@@ -146,6 +146,9 @@ export const settings = {
       color: '#818E95',
       fontStyle: 'normal',
       fontSize: 12
+    },
+    formatter: function (name) {
+      return name.slice(0, name.length - 1);
     }
   },
   textStyle: {

@@ -1,6 +1,29 @@
 <script>
 export default {
 	name: 'SBTJCard',
+	props: {
+		attr: {
+			type: String,
+			required: true
+		},
+		value: {
+			type: Number,
+			required: true
+		}
+	},
+	computed: {
+		getText() {
+			if (this.attr === 'device_count') {
+				return ['设备总量', 'Total equipment', '台'];
+			} else if (this.attr === 'device_count_day') {
+				return ['累计运行天数', 'Accumulated running days', '天'];
+			} else if (this.attr === 'device_count_login') {
+				return ['书柜访问量', 'Device access', '次'];
+			} else {
+				return ['设备异常', 'Abnormal state', '次'];
+			}
+		}
+	},
 	methods: {
 		goSGSYTJ() {
 			this.$router.push({ name: 'Shuguishiyongtongji' });
@@ -12,19 +35,19 @@ export default {
 	<div class="card-wrap">
 		<div class="flex flex-center flex-space-b">
 			<div class="flex flex-col">
-				<span class="f-s-14 col-2">书柜总量</span>
-				<span class="f-s-12 col-3 m-t-5">BORROW BOOK</span>
+				<span class="f-s-14 col-1">{{ getText[0] }}</span>
+				<span class="f-s-12 col-3 m-t-10">{{ getText[1] }}</span>
 			</div>
-			<img class="h-34 w-34" src="@/assets/img/zong-icon.png" alt />
 		</div>
-		<div class="flex flex-center flex-space-b">
-			<div class="flex-center">
-				<span class="col-4 f-s-32 bold">121</span>
-				<span class="f-s-18 m-l-5">台</span>
+		<div class="card-divide"></div>
+		<div class="flex flex-bottom flex-space-b">
+			<div>
+				<span class="col-1 f-s-32 bold">{{ value }}</span>
+				<span class="f-s-16 m-l-3">{{ getText[2] }}</span>
 			</div>
 			<div class="flex-center pointer" @click="goSGSYTJ">
-				<span class="f-s-13 col-1">详细</span>
-				<span class="el-icon-arrow-right" />
+				<span class="f-s-14 col-8">详细</span>
+				<span class="el-icon-arrow-right col-8" />
 			</div>
 		</div>
 	</div>
@@ -42,5 +65,10 @@ export default {
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+	.card-divide {
+		height: 1px;
+		width: 20px;
+		background-color: #b0b0b0;
+	}
 }
 </style>

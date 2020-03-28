@@ -15,8 +15,10 @@ export const getPathByRoles = () => {
 /**
  * 登陆时根据token判断需要跳转的页面
  */
-export const getPathLogin = (token) => {
-  if (token.includes('super')) {
+export const getPathLogin = ({
+  role_type
+}) => {
+  if (role_type === 4) {
     return '/superShujudapan'
   } else {
     return '/yunyingzhongxin'

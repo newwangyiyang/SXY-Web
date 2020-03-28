@@ -6,6 +6,8 @@ Vue.use(Router)
 /* Layout */
 import Layout from '@/layout'
 
+import superLauout from '@/superLayout';
+
 /**
  * Note: sub-menu only appear when route children.length >= 1
  * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
@@ -45,7 +47,8 @@ export const navRoutes = [{
         name: 'Tushutongji',
         component: () => import('@/views/yunyingzhongxin/tushutongji'),
         meta: {
-          title: '图书统计'
+          title: '图书统计',
+          icon: 'icontushu'
         },
         children: [{
             path: 'tushujieyueshuju',
@@ -78,14 +81,23 @@ export const navRoutes = [{
         name: 'Duzhetongji',
         component: () => import('@/views/yunyingzhongxin/duzhetongji'),
         meta: {
-          title: '读者统计'
+          title: '读者统计',
+          icon: 'iconduzhe'
         },
         children: [{
             path: 'duzheshuju',
             name: 'Duzheshuju',
             component: () => import('@/views/yunyingzhongxin/duzhetongji/pages/duzheshuju'),
             meta: {
-              title: '读者数据'
+              title: '读者借阅数据'
+            },
+          },
+          {
+            path: 'duzhehuoyu',
+            name: 'Duzhehuoyu',
+            component: () => import('@/views/yunyingzhongxin/duzhetongji/pages/duzhehuoyu'),
+            meta: {
+              title: '读者活跃'
             },
           },
           {
@@ -103,14 +115,15 @@ export const navRoutes = [{
         name: 'Shebeitongji',
         component: () => import('@/views/yunyingzhongxin/shebeitongji'),
         meta: {
-          title: '设备统计'
+          title: '设备统计',
+          icon: 'iconshebei'
         },
         children: [{
             path: 'shuguishiyongtongji',
             name: 'Shuguishiyongtongji',
             component: () => import('@/views/yunyingzhongxin/shebeitongji/pages/shuguishiyongtongji'),
             meta: {
-              title: '书柜使用统计'
+              title: '设备使用统计'
             },
           },
           {
@@ -118,7 +131,7 @@ export const navRoutes = [{
             name: 'Shebeiyichangjilu',
             component: () => import('@/views/yunyingzhongxin/shebeitongji/pages/shebeiyichangjilu'),
             meta: {
-              title: '设备异常记录'
+              title: '设备异常'
             },
           }
         ]
@@ -139,80 +152,157 @@ export const navRoutes = [{
         name: 'Guanchangchaxun',
         component: () => import('@/views/tushuguanli/guanchangchaxun'),
         meta: {
-          title: '馆藏查询'
-        }
+          title: '馆藏查询',
+          icon: 'iconguancangchaxun'
+        },
+        children: [{
+            path: 'tushuxinxibianji',
+            name: 'Tushuxinxibianji',
+            component: () => import('@/views/tushuguanli/guanchangchaxun/pages/tushuxinxibianji'),
+            meta: {
+              title: '图书信息编辑'
+            }
+          },
+          {
+            path: 'jieyuejilu',
+            name: 'Jieyuejilu',
+            component: () => import('@/views/tushuguanli/guanchangchaxun/pages/jieyuejilu'),
+            meta: {
+              title: '借阅记录'
+            }
+          }
+        ]
       },
       {
         path: 'xinzengtushu',
         name: 'Xinzengtushu',
         component: () => import('@/views/tushuguanli/xinzengtushu'),
         meta: {
-          title: '新增图书'
+          title: '新增图书',
+          icon: 'icontushu1'
         }
       },
       {
         path: 'tushujiangou',
-        name: 'guancangchaxun',
+        name: 'Tushujiangou',
         component: () => import('@/views/tushuguanli/tushujiangou'),
         meta: {
-          title: '图书荐购'
+          title: '图书荐购',
+          icon: 'icontuijian'
         }
       },
       {
         path: 'tushucaigou',
-        name: 'guancangchaxun',
+        name: 'Tushucaigou',
         component: () => import('@/views/tushuguanli/tushucaigou'),
         meta: {
-          title: '图书采购'
+          title: '图书采购',
+          icon: 'iconcaigou'
         }
       }
     ]
   },
-  // {
-  //   path: '/yonghuguanli',
-  //   component: Layout,
-  //   meta: {
-  //     title: '用户管理'
-  //   },
-  //   children: [{
-  //     path: 'index',
-  //     name: 'tushutongji',
-  //     component: () => import('@/views/form/index'),
-  //     meta: {
-  //       title: '图书统计'
-  //     }
-  //   }]
-  // },
-  // {
-  //   path: '/liutongguanli',
-  //   component: Layout,
-  //   meta: {
-  //     title: '流通管理'
-  //   },
-  //   children: [{
-  //     path: 'index',
-  //     name: 'tushutongji',
-  //     component: () => import('@/views/form/index'),
-  //     meta: {
-  //       title: '图书统计'
-  //     }
-  //   }]
-  // },
-  // {
-  //   path: '/shebeiguanli',
-  //   component: Layout,
-  //   meta: {
-  //     title: '设备管理'
-  //   },
-  //   children: [{
-  //     path: 'index',
-  //     name: 'tushutongji',
-  //     component: () => import('@/views/form/index'),
-  //     meta: {
-  //       title: '图书统计'
-  //     }
-  //   }]
-  // },
+  {
+    path: '/yonghuguanli',
+    name: 'Yonghuguanli',
+    component: Layout,
+    redirect: '/yonghuguanli/index',
+    meta: {
+      title: '用户管理',
+      roles: ['admin']
+    },
+    children: [{
+        path: 'index',
+        name: 'Yonghuchaxun',
+        component: () => import('@/views/yonghuguanli/yonghuchaxun'),
+        meta: {
+          title: '用户查询'
+        },
+        children: [{
+            path: 'yonghuxinxibianji',
+            name: 'Yonghuxinxibianji',
+            meta: {
+              title: '编辑'
+            },
+            component: () => import('@/views/yonghuguanli/yonghuchaxun/pages/yonghuxinxibianji')
+          },
+          {
+            path: 'yonghujieyuejilu',
+            name: 'Yonghujieyuejilu',
+            meta: {
+              title: '借阅记录'
+            },
+            component: () => import('@/views/yonghuguanli/yonghuchaxun/pages/yonghujieyuejilu')
+          },
+        ]
+      },
+      {
+        path: 'yonghuxinzeng',
+        name: 'Yonghuxinzeng',
+        component: () => import('@/views/yonghuguanli/yonghuxinzeng'),
+        meta: {
+          title: '用户新增',
+          icon: 'iconyonghu-xinzeng'
+        }
+      }
+    ]
+  },
+  {
+    path: '/liutongguanli',
+    name: 'Liutongguanli',
+    redirect: '/liutongguanli/index',
+    component: Layout,
+    meta: {
+      title: '流通管理',
+      roles: ['admin']
+    },
+    children: [{
+        path: 'index',
+        name: 'LTJieyueliebiao',
+        component: () => import('@/views/liutongguanli/jieyueliebiao'),
+        meta: {
+          title: '借阅列表',
+          icon: 'iconliebiao-xiangqingxbiaogetianchong'
+        }
+      },
+      {
+        path: 'jiehuanshu',
+        name: 'Jiehuanshu',
+        component: () => import('@/views/liutongguanli/jiehuanshu'),
+        meta: {
+          title: '借还书',
+          icon: 'iconbook'
+        }
+      }
+    ]
+  },
+  {
+    path: '/shebeiguanli',
+    name: 'Shebeiguanli',
+    redirect: '/shebeiguanli/index',
+    component: Layout,
+    meta: {
+      title: '设备管理',
+      roles: ['admin']
+    },
+    children: [{
+      path: 'index',
+      name: 'Sebeiliebiao',
+      component: () => import('@/views/sebeiguanli/sebeiliebiao'),
+      meta: {
+        title: '设备列表',
+        icon: 'iconshebei'
+      },
+      children: [{
+        path: 'shebeipeizhi',
+        name: 'Shebeipeizhi',
+        component: () => import('@/views/sebeiguanli/sebeiliebiao/pages/shebeipeizhi'),
+        meta: {
+          title: '设备配置'
+        }
+      }]
+    }]
+  },
   {
     path: '/xitongpeizhi',
     component: Layout,
@@ -224,18 +314,11 @@ export const navRoutes = [{
     },
     children: [{
         path: 'index',
-        name: 'Jueseguanli',
-        component: () => import('@/views/xitongpeizhi/jueseguanli'),
-        meta: {
-          title: '角色管理'
-        }
-      },
-      {
-        path: 'guanliyuan',
         name: 'Guanliyuan',
         component: () => import('@/views/xitongpeizhi/guanliyuan'),
         meta: {
-          title: '管理员'
+          title: '管理员',
+          icon: 'iconguanliyuan'
         }
       },
       {
@@ -243,51 +326,142 @@ export const navRoutes = [{
         name: 'Jigoushezhi',
         component: () => import('@/views/xitongpeizhi/jigoushezhi'),
         meta: {
-          title: '机构设置'
+          title: '机构设置',
+          icon: 'iconjigouzheshezhi'
+        }
+      },
+      {
+        path: 'zhanghaoshezhi',
+        name: 'Zhanghaoshezhi',
+        component: () => import('@/views/xitongpeizhi/zhanghaoshezhi'),
+        meta: {
+          title: '账号设置',
+          icon: 'iconshezhi'
         }
       },
     ]
   },
-  // {
-  //   path: '/fenjigouguanli',
-  //   component: Layout,
-  //   meta: {
-  //     title: '分机构管理'
-  //   },
-  //   children: [{
-  //     path: 'index',
-  //     name: 'tushutongji',
-  //     component: () => import('@/views/form/index'),
-  //     meta: {
-  //       title: '图书统计'
-  //     }
-  //   }]
-  // },
   {
     path: '/superShujudapan',
-    component: Layout,
+    component: superLauout,
     redirect: '/superShujudapan/index',
     name: 'SuperShujudapan',
     meta: {
-      title: '机构管理',
+      title: '数据大盘',
+      roles: ['superAdmin']
+    },
+    children: [{
+      path: 'index',
+      name: 'Shujudapan',
+      component: () => import('@/views/superShujudapan/shujudapan'),
+      meta: {
+        title: '数据大盘'
+      }
+    }]
+  },
+  {
+    path: '/superShujudapanSon',
+    component: Layout,
+    redirect: '/superShujudapan/index',
+    name: 'SuperShujudapanSon',
+    meta: {
+      title: '数据大盘',
       roles: ['superAdmin']
     },
     children: [{
         path: 'index',
-        name: 'Shujudapan',
-        component: () => import('@/views/superShujudapan/shujudapan'),
+        name: 'SuperTushujieyueshuju',
+        component: () => import('@/views/superShujudapan/shujudapan/superTushujieyueshuju'),
         meta: {
-          title: '数据大盘'
+          title: '图书借阅数据',
+          icon: 'icontushu'
         }
       },
       {
-        path: 'fenguanzhanghao',
-        name: 'Fenguanzhanghao',
-        component: () => import('@/views/superShujudapan/fenguanzhanghao'),
+        path: 'superDuzhejieyueshuju',
+        name: 'SuperDuzhejieyueshuju',
+        component: () => import('@/views/superShujudapan/shujudapan/superDuzhejieyueshuju'),
         meta: {
-          title: '分馆账号'
+          title: '读者借阅数据'
         }
       },
+      {
+        path: 'superShebeishiyongtongji',
+        name: 'SuperShebeishiyongtongji',
+        component: () => import('@/views/superShujudapan/shujudapan/superShebeishiyongtongji'),
+        meta: {
+          title: '设备使用统计'
+        },
+        children: [{
+          path: 'superShebeiyichang',
+          name: 'SuperShebeiyichang',
+          component: () => import('@/views/superShujudapan/shujudapan/superShebeishiyongtongji/pages/superShebeiyichang'),
+          meta: {
+            title: '设备异常'
+          }
+        }]
+      },
+      {
+        path: 'superTushufenleitongji',
+        name: 'SuperTushufenleitongji',
+        component: () => import('@/views/superShujudapan/shujudapan/superTushufenleitongji'),
+        meta: {
+          title: '图书借阅类别'
+        }
+      },
+      {
+        path: 'superRemenjieyuebangdan',
+        name: 'SuperRemenjieyuebangdan',
+        component: () => import('@/views/superShujudapan/shujudapan/superRemenjieyuebangdan'),
+        meta: {
+          title: '热门借阅榜单'
+        }
+      },
+      {
+        path: 'superJieyuedarenbangdan',
+        name: 'SuperJieyuedarenbangdan',
+        component: () => import('@/views/superShujudapan/shujudapan/superJieyuedarenbangdan'),
+        meta: {
+          title: '借阅达人榜单'
+        }
+      },
+    ]
+  }, {
+    path: '/superXitongpeizhi',
+    component: Layout,
+    redirect: '/superXitongpeizhi/index',
+    name: 'SuperXitongpeizhi',
+    meta: {
+      title: '系统配置',
+      roles: ['superAdmin']
+    },
+    children: [{
+        path: 'index',
+        name: 'Guanliyuan',
+        component: () => import('@/views/superXitongpeizhi/superGuanliyuan'),
+        meta: {
+          title: '管理员',
+          icon: 'iconguanliyuan'
+        }
+      },
+      {
+        path: 'superFenguanzhanghao',
+        name: 'SuperFenguanzhanghao',
+        component: () => import('@/views/superXitongpeizhi/superFenguanzhanghao'),
+        meta: {
+          title: '分馆账号',
+          icon: ''
+        }
+      },
+      {
+        path: 'superZhanghaoshezhi',
+        name: 'SuperZhanghaoshezhi',
+        component: () => import('@/views/superXitongpeizhi/superZhanghaoshezhi'),
+        meta: {
+          title: '账号设置',
+          icon: 'iconshezhi'
+        }
+      }
     ]
   }
 ]
@@ -298,14 +472,15 @@ export const publicNavRoutes = [{
   component: Layout,
   redirect: '/xiaoxipublic/index',
   meta: {
-    title: '消息管理'
+    title: '消息管理',
   },
   children: [{
       path: 'index',
       name: 'Xiaoxizhongxin',
       component: () => import('@/views/xiaoxipublic/xiaoxizhongxin'),
       meta: {
-        title: '消息中心'
+        title: '消息中心',
+        icon: 'iconmessage-fill'
       }
     },
     {
@@ -313,7 +488,8 @@ export const publicNavRoutes = [{
       name: 'Pintaigonggao',
       component: () => import('@/views/xiaoxipublic/pintaigonggao'),
       meta: {
-        title: '平台公告'
+        title: '平台公告',
+        icon: 'icongonggao'
       },
       children: [{
         path: 'gonggaoxiangqing',
