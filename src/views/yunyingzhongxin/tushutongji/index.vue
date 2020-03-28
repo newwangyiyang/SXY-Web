@@ -278,6 +278,7 @@ export default {
 			<div class="filter-wrap bg-0 flex-center p-l-20 p-r-20 flex-space-b">
 				<div>
 					<el-button
+						size="small"
 						:class="{ activeBtn: isCollectionsSelectedAll }"
 						:type="isCollectionsSelectedAll ? 'primary' : 'default'"
 						@click="changeCollectionsHandlerAll"
@@ -286,6 +287,7 @@ export default {
 					<el-button
 						v-for="item in collectionList"
 						:key="item.id"
+						size="small"
 						:class="{ activeBtn: isCollectionsSelectedById(item.id) }"
 						:type="isCollectionsSelectedById(item.id) ? 'primary' : 'default'"
 						@click="changeCollectionsHandler(item.id)"
@@ -295,16 +297,19 @@ export default {
 				<div>
 					<span class="f-s-14 col-1 m-r-15">时间选择</span>
 					<el-button
+						size="small"
 						:type="activeBookcaseDate === 'seven' ? 'primary' : 'default'"
 						@click="changeDateHandler('seven')"
 						>近7天</el-button
 					>
 					<el-button
+						size="small"
 						:type="activeBookcaseDate === 'thirty' ? 'primary' : 'default'"
 						@click="changeDateHandler('thirty')"
 						>近30天</el-button
 					>
 					<el-button
+						size="small"
 						:type="activeBookcaseDate === 'customer' ? 'primary' : 'default'"
 						@click="changeDateHandler('customer')"
 						>自定义</el-button
