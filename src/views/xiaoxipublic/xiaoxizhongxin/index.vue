@@ -1,49 +1,94 @@
-
 <script>
+import { messageCenterList } from '@/api/xiaoxi';
+import mixins from '@/utils/mixins-vue';
+const limit = 10;
 export default {
 	name: 'Xiaoxizhongxin',
+	mixins,
 	data() {
 		return {
-			currentPage: 1
+			// 分页
+			currentPage: 1,
+			pageSize: limit,
+			totalRow: 0,
+
+			// 消息列表
+			messageList: []
 		};
 	},
+	mounted() {
+		this.initMessageList();
+	},
 	methods: {
-		handleCurrentChange(currentPage) {}
+		// 消息列表
+		async initMessageList() {
+			const { data } = await messageCenterList({
+				pageSize: this.pageSize,
+				pageNo: this.currentPage
+			});
+			this.messageList = data.list;
+			this.totalRow = data.totalRow;
+		},
+		// 根据状态获取状态文本
+		getTypeText(type) {
+			// 消息类型type = 》1：借阅异常，2：设备异常，3：版本更新，4：公告
+			return {
+				1: '借阅异常',
+				2: '设备异常',
+				3: '版本更新',
+				4: '公告'
+			}[type];
+		},
+		handleCurrentChange(currentPage) {
+			if (this.currentPage === currentPage) return;
+			this.initMessageList();
+		},
+
+		// 跳转消息详情
+		goXXXQ() {
+			this.$router.push({ name: 'Xiaoxixiangqing' });
+		}
 	}
 };
 </script>
 <template>
 	<div class="xxzx-wrap bg-0">
-		<section class="msg-content">
-			<div class="msg-item h-40 flex-center flex-space-b p-l-20 p-r-20 pointer">
-				<div class="col-1 f-s-14">
-					<span>【借阅异常】</span>
-					<span>xxx借阅异常，超借x本图书，书名为《xxxxxx》，请及时处理！</span>
+		<section v-if="!isDeepRouterView">
+			<section class="msg-content">
+				<div
+					v-for="item in messageList"
+					:key="item.id"
+					:class="[
+						'msg-item h-40 flex-center flex-space-b p-l-20 p-r-20 pointer',
+						{ isRead: item.is_read === 1 }
+					]"
+					@click="goXXXQ"
+				>
+					<div class="col-1 f-s-14">
+						<span>【{{ getTypeText(item.type) }}】</span>
+						<span>{{ item.title }}</span>
+					</div>
+					<span class="col-1 f-s-14">{{ item.gmt_create }}</span>
 				</div>
-				<span class="col-1 f-s-14">2020/02/02 15:00:32</span>
-			</div>
-			<div :class="['msg-item h-40 flex-center flex-space-b p-l-20 p-r-20 pointer', {'isRead': true}]">
-				<div class="col-1 f-s-14">
-					<span>【借阅异常】</span>
-					<span>xxx借阅异常，超借x本图书，书名为《xxxxxx》，请及时处理！</span>
+				<div v-if="messageList.length <= 0" class="flex-center p-t-20">
+					<span class="f-s-20 col-2">暂无数据~</span>
 				</div>
-				<span class="col-1 f-s-14">2020/02/02 15:00:32</span>
-			</div>
+			</section>
+			<section class="p-t-20 flex-center flex-space-b">
+				<el-pagination
+					:current-page.sync="currentPage"
+					:page-size="pageSize"
+					layout="prev, pager, next, jumper"
+					:total="totalRow"
+					background
+					@current-change="handleCurrentChange"
+				></el-pagination>
+				<span class="f-s-12 col-2 p-r-20">共{{ totalRow }}条记录</span>
+			</section>
 		</section>
-		<section class="p-t-20 flex-center flex-space-b">
-			<el-pagination
-				:current-page.sync="currentPage"
-				:page-size="100"
-				layout="prev, pager, next, jumper"
-				:total="999"
-				background
-				@current-change="handleCurrentChange"
-			></el-pagination>
-			<span class="f-s-12 col-2 p-r-20">共123条记录</span>
-		</section>
+		<router-view v-else />
 	</div>
 </template>
-
 
 <style lang="scss" scoped>
 @import '@/styles/mixins.scss';

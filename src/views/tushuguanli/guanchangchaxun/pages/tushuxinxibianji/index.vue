@@ -1,6 +1,7 @@
-
 <script>
 import TableHeader from '@/components/TableHeader';
+import { mapGetters } from 'vuex';
+import { collectionList, classifyList, bookUpdate } from '@/api/tushuguanli';
 export default {
 	name: 'Tushuxinxibianji',
 	components: {
@@ -8,14 +9,15 @@ export default {
 	},
 	data() {
 		return {
-			bookData: {
-				tiaoxingma: '',
-				jianjie:
-					'《中国经典文学名著：西游记（上下典藏本）》是中国古典神魔小说中的巅峰之作，书中讲述了唐僧师徒四人一路降妖伏魔，历经整整九九八十一难取经的故事。作者细腻而深刻地塑造了四个极其经典的形象：慈悲、宽厚但软弱、迂腐的师父唐僧；富有反叛精神、神通广大的孙悟空；自私狡猾、好吃懒做的猪八戒；任劳任怨、忠心耿耿的沙僧……他们怀着不同的目的走上了同一条取经路，面对各种难以想象的妖魔鬼怪、险恶绝境，他们既有矛盾，又有合作与情谊。'
-			},
+			// 图书详细信息
+			bookData: {},
+			// 馆藏地列表
+			gcCollectionList: [],
+			// 图书分类列表
+			gcClassifyList: [],
 			stateOptions: [
 				{
-					value: '0',
+					value: '',
 					label: '全部状态'
 				},
 				{
@@ -31,11 +33,37 @@ export default {
 					label: '破损'
 				}
 			],
-			stateValue: '0',
+			stateValue: '',
 			imageUrl: ''
 		};
 	},
+	computed: {
+		...mapGetters(['activeBookForUpdate'])
+	},
+	mounted() {
+		this.bookData = { press_date: '', ...this.activeBookForUpdate };
+		this.initCollectionsList();
+		this.initClassifyList();
+	},
 	methods: {
+		// 馆藏地列表初始化
+		async initCollectionsList() {
+			const { data } = await collectionList();
+			this.gcCollectionList = data;
+		},
+
+		// 图书种类列表
+		async initClassifyList() {
+			const { data } = await classifyList();
+			this.gcClassifyList = data;
+		},
+
+		// 图书基本信息更新
+		async updateBookDataHandler() {
+			const { data } = await bookUpdate({ book_id: this.bookData.id, ...this.bookData });
+			console.log(data);
+		},
+
 		handleAvatarSuccess(file) {
 			this.imageUrl = URL.createObjectURL(file.raw);
 		},
@@ -57,7 +85,12 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入条码号" />
+						<el-input
+							v-model="bookData.item"
+							class="flex1"
+							size="small"
+							placeholder="请输入条码号"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">
@@ -65,7 +98,12 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入ISBN" />
+						<el-input
+							v-model="bookData.isbn"
+							class="flex1"
+							size="small"
+							placeholder="请输入ISBN"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">
@@ -73,19 +111,39 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入书名" />
+						<el-input
+							v-model="bookData.title"
+							class="flex1"
+							size="small"
+							placeholder="请输入书名"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">作者:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入作者" />
+						<el-input
+							v-model="bookData.author"
+							class="flex1"
+							size="small"
+							placeholder="请输入作者"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">出版社:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入出版社" />
+						<el-input
+							v-model="bookData.publisher"
+							class="flex1"
+							size="small"
+							placeholder="请输入出版社"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">价格:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入价格" />
+						<el-input
+							v-model="bookData.price"
+							class="flex1"
+							size="small"
+							placeholder="请输入价格"
+						/>
 					</section>
 				</el-col>
 				<el-col :span="6">
@@ -95,34 +153,64 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-select v-model="stateValue" class="flex1" size="small" placeholder="图书类别">
+						<el-select
+							v-model="bookData.classify_id"
+							class="flex1"
+							size="small"
+							placeholder="图书类别"
+						>
 							<el-option
-								v-for="item in stateOptions"
-								:key="item.value"
-								:label="item.label"
-								:value="item.value"
+								v-for="item in gcClassifyList"
+								:key="item.id"
+								:label="item.name"
+								:value="item.id"
 							></el-option>
 						</el-select>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">索书号:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入索书号" />
+						<el-input
+							v-model="bookData.callno"
+							class="flex1"
+							size="small"
+							placeholder="请输入索书号"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">出版年份:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入出版年份" />
+						<el-input
+							v-model="bookData.press_date"
+							class="flex1"
+							size="small"
+							placeholder="请输入出版年份"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">页数:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入页数" />
+						<el-input
+							v-model="bookData.total_page"
+							class="flex1"
+							size="small"
+							placeholder="请输入页数"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">尺寸:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入尺寸" />
+						<el-input
+							v-model="bookData.size"
+							class="flex1"
+							size="small"
+							placeholder="请输入尺寸"
+						/>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">主题词:</span>
-						<el-input v-model="bookData.tiaoxingma" class="flex1" size="small" placeholder="请输入主题词" />
+						<el-input
+							v-model="bookData.theme"
+							class="flex1"
+							size="small"
+							placeholder="请输入主题词"
+						/>
 					</section>
 				</el-col>
 				<el-col :span="6">
@@ -132,12 +220,17 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-select v-model="stateValue" class="flex1" size="small" placeholder="馆藏地">
+						<el-select
+							v-model="bookData.collection_id"
+							class="flex1"
+							size="small"
+							placeholder="馆藏地"
+						>
 							<el-option
-								v-for="item in stateOptions"
-								:key="item.value"
-								:label="item.label"
-								:value="item.value"
+								v-for="item in gcCollectionList"
+								:key="item.id"
+								:label="item.name"
+								:value="item.id"
 							></el-option>
 						</el-select>
 					</section>
@@ -154,14 +247,14 @@ export default {
 							:show-file-list="false"
 							:on-change="handleAvatarSuccess"
 						>
-							<img v-if="imageUrl" :src="imageUrl" class="avatar" />
+							<img v-if="bookData.coverimg" :src="bookData.coverimg" class="avatar" />
 							<div v-else class="avatar-uploader-icon flex-center">
 								<i class="el-icon-plus f-s-24 col-2"></i>
 							</div>
 
 							<div class="upload-msg-tip f-s-12 col-8 flex-col absolute">
 								<span>点击上传图书封面</span>
-								<span>大小不超过200kb</span>
+								<span class="m-t-10">大小不超过200kb</span>
 							</div>
 						</el-upload>
 					</section>
@@ -174,7 +267,7 @@ export default {
 						<el-input
 							v-model="bookData.jianjie"
 							type="textarea"
-							:autosize="{ minRows: 6, maxRows: 10}"
+							:autosize="{ minRows: 6, maxRows: 10 }"
 							placeholder="请输入简介"
 						></el-input>
 					</section>
@@ -182,12 +275,13 @@ export default {
 			</el-row>
 			<section class="h-100 flex-center">
 				<el-button type="default" @click="goBack">取消</el-button>
-				<el-button type="primary" class="w-200 m-l-20">确定</el-button>
+				<el-button type="primary" class="w-200 m-l-20" @click="updateBookDataHandler"
+					>确定</el-button
+				>
 			</section>
 		</div>
 	</div>
 </template>
-
 
 <style lang="scss" scoped>
 @import '~@/styles/mixins.scss';
@@ -226,8 +320,8 @@ export default {
 			display: block;
 		}
 		.upload-msg-tip {
-			bottom: -40px;
-			left: 15px;
+			bottom: -60px;
+			left: 10px;
 		}
 	}
 }

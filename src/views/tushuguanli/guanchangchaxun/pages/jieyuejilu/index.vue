@@ -1,6 +1,8 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
+import { gcDetail, borrowList } from '@/api/tushuguanli';
+const limit = 10;
 export default {
 	name: 'Jieyuejilu',
 	components: {
@@ -9,65 +11,52 @@ export default {
 	mixins,
 	data() {
 		return {
+			// 路由传递而来的图书主键
+			bookId: '',
+			// 图书基本信息
+			bookData: {},
+			// 表格数据
+			tableData: [],
+			// 分页
+			pageSize: limit,
+			currentPage: 1,
+			totalRow: 0,
+
 			chooseDate: '',
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
-			currentPage: 5,
 			name: '',
 			cardNum: ''
 		};
 	},
+	mounted() {
+		this.bookId = this.$route.params.bookId;
+		this.chooseDate = this.initChooseDate();
+		this.initBookDetail();
+		this.initBorrowTableData();
+	},
 	methods: {
+		// 获取图书的基本信息
+		async initBookDetail() {
+			const { book: data } = await gcDetail({ book_id: this.bookId });
+			this.bookData = data;
+		},
+
+		// 获取table数据
+		async initBorrowTableData() {
+			const { data } = await borrowList(this.formatParams());
+			this.tableData = data.list;
+		},
+		// 格式化参数
+		formatParams() {
+			return {
+				...this.initDateParams(this.chooseDate),
+				pageNo: this.currentPage,
+				pageSize: this.pageSize,
+				book_id: this.bookId,
+				name: this.name,
+				card_number: this.cardNum
+			};
+		},
+
 		handleCurrentChange(currentPage) {},
 		// 1、导出当前按钮
 		handlerExportSelected() {
@@ -84,7 +73,7 @@ export default {
 	<div class="tsjysj-wrap">
 		<div class="content-wrap">
 			<TableHeader
-				title="西游记 借阅记录"
+				:title="`${bookData.title || '-'} 借阅记录`"
 				@handlerExportSelected="handlerExportSelected"
 				@handlerExportAll="handlerExportAll"
 			/>

@@ -164,7 +164,7 @@ export const navRoutes = [{
             }
           },
           {
-            path: 'jieyuejilu',
+            path: 'jieyuejilu/:bookId',
             name: 'Jieyuejilu',
             component: () => import('@/views/tushuguanli/guanchangchaxun/pages/jieyuejilu'),
             meta: {
@@ -481,7 +481,15 @@ export const publicNavRoutes = [{
       meta: {
         title: '消息中心',
         icon: 'iconmessage-fill'
-      }
+      },
+      children: [{
+        path: 'xiaoxixiangqing',
+        name: 'Xiaoxixiangqing',
+        component: () => import('@/views/xiaoxipublic/xiaoxizhongxin/pages/xiaoxixiangqing'),
+        meta: {
+          title: '消息详情'
+        }
+      }]
     },
     {
       path: 'pintaigonggao',

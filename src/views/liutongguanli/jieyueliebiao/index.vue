@@ -1,6 +1,8 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
+import { borrowSearchList } from '@/api/liutongguanli';
+const limit = 10;
 export default {
 	name: 'Jieyueliebiao',
 	components: {
@@ -16,80 +18,64 @@ export default {
 			chooseDate: [],
 			stateOptions: [
 				{
-					value: '0',
+					value: '',
 					label: '全部状态'
 				},
 				{
+					value: '0',
+					label: '借出'
+				},
+				{
 					value: '1',
-					label: '流通中'
+					label: '归还'
 				},
 				{
 					value: '2',
-					label: '在馆'
+					label: '超借'
 				},
 				{
 					value: '3',
-					label: '破损'
+					label: '逾期'
+				},
+				{
+					value: '4',
+					label: '逾期超借'
 				}
 			],
-			stateValue: '0',
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
-			currentPage: 5
+			stateValue: '',
+			tableData: [],
+			// 分页
+			currentPage: 1,
+			pageSize: limit,
+			totalRow: 0
 		};
 	},
+	watch: {
+		chooseDate() {
+			this.initBorrowTableData();
+		}
+	},
+	mounted() {
+		this.chooseDate = this.initChooseDate();
+	},
 	methods: {
-		handleCurrentChange(currentPage) {},
+		// 初始化借阅列表
+		async initBorrowTableData() {
+			const { data } = await borrowSearchList({
+				...this.initDateParams(this.chooseDate),
+				name: this.name,
+				card_number: this.duzeNum,
+				title: this.timing,
+				item: this.tiaomahao,
+				type: this.stateValue
+			});
+			this.tableData = data.list;
+			this.totalRow = data.totalRow;
+		},
+		handleCurrentChange(currentPage) {
+			if (this.currentPage === currentPage) return;
+			this.initBorrowTableData();
+		},
 		// 1、导出当前按钮
 		handlerExportSelected() {
 			console.log('handlerExportSelected');

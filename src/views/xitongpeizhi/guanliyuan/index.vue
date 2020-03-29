@@ -1,6 +1,7 @@
 <script>
 import TableHeaderCustomeBtn from '@/components/TableHeaderCustomeBtn';
 import mixins from '@/utils/mixins-vue';
+import { accountList } from '@/api/xitongpeizhi';
 export default {
 	name: 'Guanliyuan',
 	components: {
@@ -9,80 +10,26 @@ export default {
 	mixins,
 	data() {
 		return {
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
-			stateOptions: [
-				{
-					value: '0',
-					label: '全部状态'
-				},
-				{
-					value: '1',
-					label: '流通中'
-				},
-				{
-					value: '2',
-					label: '在馆'
-				},
-				{
-					value: '3',
-					label: '破损'
-				}
-			]
-			// stateValue: '0',
-			// sbName: '',
-			// sbNum: ''
+			tableData: []
 		};
+	},
+	mounted() {
+		this.initAdminTableData();
+	},
+	methods: {
+		// 初始化管理员列表
+		async initAdminTableData() {
+			const { data } = await accountList();
+			data.forEach((item) => {
+				item.showTip = false;
+			});
+			this.tableData = data;
+		},
+		// 获取二维码
+		makeQrcodeHandler(id) {
+			// TODO: 项目部署需同步线上地址
+			return `http://shuxiaoyi.qicp.vip/admin/v2/system/makeQrcodeBindWeixin?token=ffaa765ea4124d1ab88fc4c87075844a&id=${id}`;
+		}
 	}
 };
 </script>
@@ -97,34 +44,6 @@ export default {
 					<el-button plain type="info" size="small" icon="el-icon-delete">删除</el-button>
 				</template>
 			</TableHeaderCustomeBtn>
-
-			<!-- <section class="p-20 flex-center flex-space-b">
-				<section class="flex-center">
-					<div class="flex-center">
-						<span class="input-title col-1 f-s-14">设备名称:</span>
-						<el-input v-model="sbName" class="flex1" size="small" placeholder="请输入设备名称" />
-					</div>
-					<div class="flex-center m-l-20">
-						<span class="input-title col-1 f-s-14">设备编号:</span>
-						<el-input v-model="sbName" class="flex1" size="small" placeholder="请输入设备编号" />
-					</div>
-					<div class="flex-center m-l-20">
-						<span class="input-title col-1 f-s-14">设备状态:</span>
-						<el-select v-model="stateValue" class="flex1" size="small">
-							<el-option
-								v-for="item in stateOptions"
-								:key="item.value"
-								:label="item.label"
-								:value="item.value"
-							></el-option>
-						</el-select>
-					</div>
-				</section>
-				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
-				</section>
-			</section> -->
 			<section>
 				<el-table
 					:cell-style="cellStyle"
@@ -136,33 +55,28 @@ export default {
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="date" label="管理员姓名"></el-table-column>
-					<el-table-column prop="name" label="账号名称"></el-table-column>
-					<el-table-column prop="address" label="账号密码"></el-table-column>
-					<el-table-column prop="address" label="角色"></el-table-column>
+					<el-table-column prop="name" label="管理员姓名"></el-table-column>
+					<el-table-column prop="username" label="账号名称"></el-table-column>
+					<el-table-column prop="role_name" label="角色"></el-table-column>
 					<el-table-column label="微信绑定">
 						<template v-slot="scope">
-							<el-tooltip placement="top">
+							<el-tooltip placement="top" effect="light">
 								<template #content>
 									<div class="qrcode-img">
 										<img
 											class="h-100p w-100p"
-											src="@/assets/img/list-item.png"
+											:src="makeQrcodeHandler(scope.row.id)"
 											alt
 										/>
 									</div>
 								</template>
-								<el-button
-									type="text"
-									size="small"
-									class="do-btn"
-									@click="handleClick(scope.row)"
+								<el-button type="text" size="small" class="do-btn" @click="() => {}"
 									>查看</el-button
 								>
 							</el-tooltip>
 						</template>
 					</el-table-column>
-					<el-table-column prop="address" label="创建时间"></el-table-column>
+					<el-table-column prop="gmt_login" label="创建时间"></el-table-column>
 					<el-table-column label="操作" width="180">
 						<template v-slot="scope">
 							<el-button

@@ -1,6 +1,8 @@
 <script>
 import TableHeaderCustomeBtn from '@/components/TableHeaderCustomeBtn';
 import mixins from '@/utils/mixins-vue';
+import { recommendList } from '@/api/tushuguanli';
+const limit = 10;
 export default {
 	name: 'Tushujiangou',
 	components: {
@@ -9,59 +11,10 @@ export default {
 	mixins,
 	data() {
 		return {
-			chooseDate: '',
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
+			// 时间
+			chooseDate: [],
+			tableData: [],
+			// 状态列表
 			stateOptions: [
 				{
 					value: '0',
@@ -69,23 +22,59 @@ export default {
 				},
 				{
 					value: '1',
-					label: '流通中'
+					label: '未处理'
 				},
 				{
 					value: '2',
-					label: '在馆'
+					label: '完成'
 				},
 				{
 					value: '3',
-					label: '破损'
+					label: '驳回'
+				},
+				{
+					value: '4',
+					label: '采纳'
+				},
+				{
+					value: '5',
+					label: '待通知'
 				}
 			],
+			// 选中的状态值
 			stateValue: '0',
-			currentPage: 5,
-			jiangouren: ''
+			// 荐购人
+			jiangouren: '',
+			// 分页
+			currentPage: 1,
+			pageSize: limit,
+			totalRow: 0
 		};
 	},
+	watch: {
+		chooseDate() {
+			this.initRecomandeData();
+		},
+		stateValue() {
+			this.initRecomandeData();
+		}
+	},
+	mounted() {
+		this.chooseDate = this.initChooseDate();
+	},
 	methods: {
+		// 图书荐购列表查询
+		async initRecomandeData() {
+			const { data } = await recommendList({
+				name: this.jiangouren,
+				type: this.stateValue,
+				pageNo: this.currentPage,
+				pageSize: this.pageSize,
+				...this.initDateParams(this.chooseDate)
+			});
+			this.totalRow = data.totalRow;
+			this.tableData = data.list;
+		},
 		handleCurrentChange(currentPage) {}
 	}
 };
@@ -152,16 +141,19 @@ export default {
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="name" label="荐购题名"></el-table-column>
-					<el-table-column prop="date" label="ISBN"></el-table-column>
-					<el-table-column prop="address" label="作者"></el-table-column>
-					<el-table-column prop="address" label="出版社"></el-table-column>
-					<el-table-column prop="address" label="荐购人"></el-table-column>
-					<el-table-column prop="address" label="荐购时间"></el-table-column>
-					<el-table-column prop="address" label="荐购理由"></el-table-column>
+					<el-table-column prop="title" label="荐购题名"></el-table-column>
+					<el-table-column prop="isbn" label="ISBN"></el-table-column>
+					<el-table-column prop="author" label="作者"></el-table-column>
+					<el-table-column prop="publisher" label="出版社"></el-table-column>
+					<el-table-column prop="user_name" label="荐购人"></el-table-column>
+					<el-table-column prop="gmt_create" label="荐购时间"></el-table-column>
+					<el-table-column prop="reason" label="荐购理由"></el-table-column>
 					<el-table-column label="处理状态">
-						<template v-slot="scope">
-							<el-dropdown>
+						<template v-slot="{ row }">
+							<span v-if="row.status === 3">采纳</span>
+							<span v-else-if="row.status === 1">驳回</span>
+							<span v-else-if="row.status === 2">上架</span>
+							<el-dropdown v-else>
 								<span
 									class="col-6 f-s-12"
 									@click="
@@ -175,11 +167,9 @@ export default {
 								</span>
 								<template #dropdown>
 									<el-dropdown-menu>
-										<el-dropdown-item>黄金糕</el-dropdown-item>
-										<el-dropdown-item>狮子头</el-dropdown-item>
-										<el-dropdown-item>螺蛳粉</el-dropdown-item>
-										<el-dropdown-item disabled>双皮奶</el-dropdown-item>
-										<el-dropdown-item divided>蚵仔煎</el-dropdown-item>
+										<el-dropdown-item>采纳</el-dropdown-item>
+										<el-dropdown-item>驳回</el-dropdown-item>
+										<el-dropdown-item>上架</el-dropdown-item>
 									</el-dropdown-menu>
 								</template>
 							</el-dropdown>
@@ -211,19 +201,19 @@ export default {
 							>
 						</template>
 					</el-table-column>
-					<el-table-column prop="address" label="处理人"></el-table-column>
+					<el-table-column prop="operator" label="处理人"></el-table-column>
 				</el-table>
 			</section>
 			<section class="p-r-20 p-b-20 flex-center flex-space-b">
 				<el-pagination
 					:current-page.sync="currentPage"
-					:page-size="100"
+					:page-size="pageSize"
 					layout="prev, pager, next, jumper"
-					:total="999"
+					:total="totalRow"
 					background
 					@current-change="handleCurrentChange"
 				></el-pagination>
-				<span class="f-s-12 col-2">共123条记录</span>
+				<span class="f-s-12 col-2">共{{ totalRow }}条记录</span>
 			</section>
 		</div>
 	</div>

@@ -1,6 +1,21 @@
 <script>
 export default {
 	name: 'AppMain',
+	data() {
+		return {
+			reloadViewAlive: true
+		};
+	},
+	provide() {
+		return {
+			reload() {
+				this.reloadViewAlive = false;
+				this.$nextTick(() => {
+					this.reloadViewAlive = true;
+				});
+			}
+		};
+	},
 	computed: {
 		key() {
 			return this.$route.path;
@@ -11,7 +26,7 @@ export default {
 <template>
 	<section class="app-main">
 		<transition name="fade-transform" mode="out-in">
-			<router-view :key="key" />
+			<router-view v-if="reloadViewAlive" :key="key" />
 		</transition>
 	</section>
 </template>

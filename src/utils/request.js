@@ -48,9 +48,9 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     // if the custom code is not 20000, it is judged as an error.
-    if (res.errcode !== 0) {
+    if (res.errcode !== 0 && response.headers['content-type'] !== 'image/png') {
       Message({
-        message: res.message || '请求异常',
+        message: res.errmsg || '请求异常',
         type: 'error',
         duration: 3 * 1000
       })

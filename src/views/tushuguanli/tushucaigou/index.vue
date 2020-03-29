@@ -1,6 +1,8 @@
 <script>
 import TableHeaderCustomeBtn from '@/components/TableHeaderCustomeBtn';
 import mixins from '@/utils/mixins-vue';
+import { caigouShowPage } from '@/api/tushuguanli';
+const limit = 10;
 export default {
 	name: 'Tushucaigou',
 	components: {
@@ -64,28 +66,51 @@ export default {
 			],
 			stateOptions: [
 				{
-					value: '0',
+					value: '',
 					label: '全部状态'
 				},
 				{
+					value: '0',
+					label: '未处理'
+				},
+				{
 					value: '1',
-					label: '流通中'
+					label: '采购中'
 				},
 				{
 					value: '2',
-					label: '在馆'
-				},
-				{
-					value: '3',
-					label: '破损'
+					label: '已处理'
 				}
 			],
-			stateValue: '0',
-			currentPage: 5,
-			jiangouren: ''
+			stateValue: '',
+			jiangouTitle: '',
+
+			// 分页
+			pageSize: limit,
+			currentPage: 1,
+			totalRow: 0
 		};
 	},
+	watch: {
+		chooseDate() {
+			this.initCaiGouTableData();
+		}
+	},
+	mounted() {
+		this.chooseDate = this.initChooseDate();
+	},
 	methods: {
+		// 初始化图书采购列表
+		async initCaiGouTableData() {
+			const { data } = await caigouShowPage({
+				pageNo: this.currentPage,
+				pageSize: this.pageSize,
+				status: this.stateValue,
+				title: this.jiangouTitle,
+				...this.initDateParams(this.chooseDate)
+			});
+			console.log(data);
+		},
 		handleCurrentChange(currentPage) {}
 	}
 };
@@ -125,7 +150,7 @@ export default {
 						size="small"
 					></el-date-picker>
 					<el-input
-						v-model="jiangouren"
+						v-model="jiangouTitle"
 						size="small"
 						class="w-200 m-l-20"
 						placeholder="请输入荐购题名"

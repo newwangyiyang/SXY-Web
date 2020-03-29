@@ -1,16 +1,48 @@
-
 <script>
 import mixins from '@/utils/mixins-vue';
+import { messageNoticeList } from '@/api/xiaoxi';
+const limit = 10;
 export default {
 	name: 'Pingtaigonggao',
 	mixins,
 	data() {
 		return {
-			currentPage: 1
+			// 分页
+			currentPage: 1,
+			pageSize: limit,
+			totalRow: 0,
+
+			// 消息列表
+			noticeList: []
 		};
 	},
+	mounted() {
+		this.initNoticeList();
+	},
 	methods: {
-		handleCurrentChange(currentPage) {},
+		// 公告列表
+		async initNoticeList() {
+			const { data } = await messageNoticeList({
+				pageNo: this.currentPage,
+				pageSize: this.pageSize
+			});
+			this.noticeList = data.list;
+			this.totalRow = data.totalRow;
+		},
+		handleCurrentChange(currentPage) {
+			if (this.currentPage === currentPage) return;
+			this.initNoticeList();
+		},
+		// 根据状态获取状态文本
+		getTypeText(type) {
+			// 消息类型type = 》1：借阅异常，2：设备异常，3：版本更新，4：公告
+			return {
+				1: '借阅异常',
+				2: '设备异常',
+				3: '版本更新',
+				4: '公告'
+			}[type];
+		},
 		goGGXQ() {
 			this.$router.push({ name: 'Gonggaoxiangqing' });
 		}
@@ -21,30 +53,30 @@ export default {
 	<div class="xxzx-wrap bg-0">
 		<section v-if="!isDeepRouterView">
 			<section class="msg-content">
-				<div class="msg-item h-40 flex-center flex-space-b p-l-20 p-r-20 pointer" @click="goGGXQ">
-					<div class="col-1 f-s-14">
-						<span>【版本更新】</span>
-						<span>xxx借阅异常，超借x本图书，书名为《xxxxxx》，请及时处理！</span>
-					</div>
-					<span class="col-1 f-s-14">2020/02/02 15:00:32</span>
-				</div>
 				<div
-					:class="['msg-item h-40 flex-center flex-space-b p-l-20 p-r-20 pointer', {'isRead': true}]"
-					@click="goGGXQ"
+					v-for="item in noticeList"
+					:key="item.id"
+					:class="[
+						'msg-item h-40 flex-center flex-space-b p-l-20 p-r-20 pointer',
+						{ isRead: item.is_read === 1 }
+					]"
 				>
 					<div class="col-1 f-s-14">
-						<span>【公告】</span>
-						<span>xxx借阅异常，超借x本图书，书名为《xxxxxx》，请及时处理！</span>
+						<span>【{{ getTypeText(item.type) }}】</span>
+						<span>{{ item.title }}</span>
 					</div>
-					<span class="col-1 f-s-14">2020/02/02 15:00:32</span>
+					<span class="col-1 f-s-14">{{ item.gmt_create }}</span>
+				</div>
+				<div v-if="noticeList.length <= 0" class="flex-center p-t-20">
+					<span class="f-s-20 col-2">暂无数据~</span>
 				</div>
 			</section>
 			<section class="p-t-20 flex-center flex-space-b">
 				<el-pagination
 					:current-page.sync="currentPage"
-					:page-size="100"
+					:page-size="pageSize"
 					layout="prev, pager, next, jumper"
-					:total="999"
+					:total="totalRow"
 					background
 					@current-change="handleCurrentChange"
 				></el-pagination>
@@ -54,7 +86,6 @@ export default {
 		<router-view v-else />
 	</div>
 </template>
-
 
 <style lang="scss" scoped>
 @import '@/styles/mixins.scss';

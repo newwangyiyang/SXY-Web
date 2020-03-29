@@ -9,5 +9,6 @@ const getters = {
   permission_routes: state => state.permission.routes,
   activeRoutes: state => state.routes.activeRoutes,
   activePrePath: state => state.routes.activePrePath,
+  activeBookForUpdate: state => state.tushuguanli.activeBookForUpdate,
 }
 export default getters
