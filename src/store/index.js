@@ -7,6 +7,7 @@ import settings from './modules/settings'
 import user from './modules/user'
 import tushuguanli from './modules/tushuguanli'
 
+import yonghuguanli from './modules/yonghuguanli'
 import routes from './modules/routes';
 
 Vue.use(Vuex)
@@ -19,6 +20,7 @@ const store = new Vuex.Store({
     user,
     tushuguanli,
 
+    yonghuguanli,
     routes
   },
   getters

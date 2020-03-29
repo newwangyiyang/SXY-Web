@@ -10,5 +10,6 @@ const getters = {
   activeRoutes: state => state.routes.activeRoutes,
   activePrePath: state => state.routes.activePrePath,
   activeBookForUpdate: state => state.tushuguanli.activeBookForUpdate,
+  activeUserForUpdate: state => state.yonghuguanli.activeUserForUpdate,
 }
 export default getters

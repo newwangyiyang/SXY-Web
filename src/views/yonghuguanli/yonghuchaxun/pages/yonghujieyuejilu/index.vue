@@ -1,6 +1,7 @@
 <script>
 import TableHeaderCustomeBtn from '@/components/TableHeaderCustomeBtn';
 import mixins from '@/utils/mixins-vue';
+import { getBorrowList } from '@/api/yonghuguanli';
 export default {
 	name: 'Yonghujieyuejilu',
 	components: {
@@ -9,61 +10,28 @@ export default {
 	mixins,
 	data() {
 		return {
+			formSearch: {
+				pageNumber: 1,
+				pageSize: 10,
+				uid: '',
+				title: '',
+				status: '',
+				starttime: '',
+				endtime: ''
+			},
+			// 创建时间选择框
 			chooseDate: '',
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
+			// 借阅记录
+			tableData: [],
 			currentPage: 5,
+			// 借阅人
 			name: '',
+			// 已借阅数量
+			borrow_count: '',
+			// 可借阅数量
+			org_borrow_count: '',
+			// 总数量
+			totalRow: 0,
 			stateOptions: [
 				{
 					value: '0',
@@ -81,13 +49,41 @@ export default {
 					value: '3',
 					label: '破损'
 				}
-			],
-			stateValue: '0',
-			cardNum: ''
+			]
 		};
 	},
+	mounted() {
+		this.formSearch.uid = this.$route.query.uid;
+		this.getBorrowList();
+	},
 	methods: {
-		handleCurrentChange(currentPage) {},
+		// 借阅记录查询
+		async getBorrowList() {
+			if (this.chooseDate) {
+				this.formSearch.starttime = this.chooseDate[0];
+				this.formSearch.endtime = this.chooseDate[1];
+			}
+			const { data, org_borrow_count, name, borrow_count } = await getBorrowList(
+				this.formSearch
+			);
+			this.totalRow = data.totalRow;
+			this.tableData = data.list;
+			this.org_borrow_count = org_borrow_count;
+			this.name = name;
+			this.borrow_count = borrow_count;
+		},
+		// 重置
+		reset() {
+			this.formSearch.title = '';
+			this.formSearch.status = '';
+			this.chooseDate = '';
+			this.handleCurrentChange(1);
+		},
+		// 分页切换
+		handleCurrentChange(currentPage) {
+			this.formSearch.pageNumber = currentPage;
+			this.getBorrowList();
+		},
 		// 1、导出当前按钮
 		handlerExportSelected() {
 			console.log('handlerExportSelected');
@@ -102,9 +98,9 @@ export default {
 <template>
 	<div class="tsjysj-wrap">
 		<div class="content-wrap">
-			<TableHeaderCustomeBtn title="书小二 借阅记录">
+			<TableHeaderCustomeBtn :title="name+' 借阅记录'">
 				<template #title-msg>
-					<span class="f-s-14 col-3 m-l-10">可借3本，已借2本</span>
+					<span class="f-s-14 col-3 m-l-10">可借{{org_borrow_count}}本，已借{{borrow_count}}本</span>
 				</template>
 				<template #right-btn>
 					<el-button
@@ -113,16 +109,14 @@ export default {
 						size="small"
 						icon="el-icon-document"
 						@click="handlerExportSelected"
-						>导出当前</el-button
-					>
+					>导出当前</el-button>
 					<el-button
 						plain
 						type="info"
 						size="small"
 						icon="el-icon-document"
 						@click="handlerExportAll"
-						>导出全部</el-button
-					>
+					>导出全部</el-button>
 				</template>
 			</TableHeaderCustomeBtn>
 			<section class="p-20 flex-center flex-space-b">
@@ -138,18 +132,8 @@ export default {
 						:clearable="false"
 						size="small"
 					></el-date-picker>
-					<el-input
-						v-model="name"
-						size="small"
-						class="w-200 m-l-20"
-						placeholder="请输入书名"
-					></el-input>
-					<el-select
-						v-model="stateValue"
-						class="m-l-20"
-						size="small"
-						placeholder="用户组"
-					>
+					<el-input v-model="formSearch.title" size="small" class="w-200 m-l-20" placeholder="请输入书名"></el-input>
+					<el-select v-model="formSearch.status" class="m-l-20" size="small" placeholder="借阅状态">
 						<el-option
 							v-for="item in stateOptions"
 							:key="item.value"
@@ -159,8 +143,8 @@ export default {
 					</el-select>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="handleCurrentChange(1)">查询</el-button>
+					<el-button size="small" @click="reset">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -174,12 +158,12 @@ export default {
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="name" label="题名"></el-table-column>
-					<el-table-column prop="date" label="ISBN"></el-table-column>
-					<el-table-column prop="address" label="条码号"></el-table-column>
-					<el-table-column prop="address" label="借阅时间"></el-table-column>
-					<el-table-column prop="address" label="到期时间"></el-table-column>
-					<el-table-column prop="address" label="归还时间"></el-table-column>
+					<el-table-column prop="title" label="题名"></el-table-column>
+					<el-table-column prop="isbn" label="ISBN"></el-table-column>
+					<el-table-column prop="item" label="条码号"></el-table-column>
+					<el-table-column prop="gmt_borrow" label="借阅时间"></el-table-column>
+					<el-table-column prop="gmt_expire" label="到期时间"></el-table-column>
+					<el-table-column prop="gmt_return" label="归还时间"></el-table-column>
 					<el-table-column label="借阅状态">
 						<template v-slot="scope">
 							<el-dropdown>
@@ -206,19 +190,19 @@ export default {
 							</el-dropdown>
 						</template>
 					</el-table-column>
-					<el-table-column prop="address" label="处理人"></el-table-column>
+					<el-table-column prop="operator" label="处理人"></el-table-column>
 				</el-table>
 			</section>
 			<section class="p-r-20 p-b-20 flex-center flex-space-b">
 				<el-pagination
-					:current-page.sync="currentPage"
-					:page-size="100"
+					:current-page.sync="formSearch.pageNumber"
+					:page-size="formSearch.pageSize"
 					layout="prev, pager, next, jumper"
-					:total="999"
+					:total="totalRow"
 					background
 					@current-change="handleCurrentChange"
 				></el-pagination>
-				<span class="f-s-12 col-2">共123条记录</span>
+				<span class="f-s-12 col-2">共{{totalRow}}条记录</span>
 			</section>
 		</div>
 	</div>
