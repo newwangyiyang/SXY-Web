@@ -74,11 +74,11 @@ export default {
 			}
 			const { data } = await searchUser(this.formSearch);
 			this.totalRow = data.totalRow;
-			this.tableData = data.list;
-			this.tableData.map((item) => {
+			data.list.map((item) => {
 				item.checked = false;
 				return item;
 			});
+			this.tableData = data.list;
 		},
 		// 删除用户
 		deleteUser(uid) {
@@ -107,6 +107,9 @@ export default {
 		},
 		// 批量删除用户
 		deleteHandler() {
+			this.userBatchForm.uids = this.tableData
+				.filter((item) => item.checked)
+				.map((item) => item.uid);
 			if (this.userBatchForm.uids.length === 0) {
 				this.$message({
 					type: 'warning',
