@@ -2,7 +2,7 @@
 import TableHeader from '@/components/TableHeader';
 import TableHeaderCustomeBtn from '@/components/TableHeaderCustomeBtn';
 import mixins from '@/utils/mixins-vue';
-import { collectionList, classifyList, gcSearch, bookDelete } from '@/api/tushuguanli';
+import { collectionList, classifyList, gcSearch, bookDelete, deleteBatch } from '@/api/tushuguanli';
 const limit = 10;
 export default {
 	name: 'Guanchangchaxun',
@@ -45,6 +45,7 @@ export default {
 	},
 	mounted() {
 		this.initAllData();
+		this.gcSearchHandler();
 	},
 	methods: {
 		// 馆藏地列表初始化
@@ -68,19 +69,15 @@ export default {
 
 		// 馆藏查询
 		async gcSearchHandler() {
-			if (!this.shuming && !this.isbn && !this.tiaoma) {
-				this.$message('请至少填写一个查询条件！');
-			} else {
-				const { bookPage: data } = await gcSearch(this.formatParams());
-				this.isSearch = true;
-				this.totalRow = data.totalRow;
-				this.searchList = data.list.map((item) => {
-					item.checked = false;
-					return item;
-				});
-				if (data.totalRow === 0) {
-					this.$message('无查询结果');
-				}
+			const { bookPage: data } = await gcSearch(this.formatParams());
+			this.isSearch = true;
+			this.totalRow = data.totalRow;
+			this.searchList = data.list.map((item) => {
+				item.checked = false;
+				return item;
+			});
+			if (data.totalRow === 0) {
+				this.$message('无查询结果');
 			}
 		},
 		// 格式化统一查询条件
@@ -99,16 +96,19 @@ export default {
 
 		// 参数重置按钮
 		btnResetHandler() {
+			this.currentPage = 1;
 			this.shuming = this.isbn = this.tiaoma = this.gcCollectionValue = this.gcClassifyValue = this.gcStateValue =
 				'';
 			this.searchList = [];
 			this.isSearch = false;
+			this.gcSearchHandler();
 		},
 
 		handleCurrentChange() {
 			this.gcSearchHandler();
 		},
 
+		// 单本删除
 		deleteHandler(book_id) {
 			this.$confirm('此操作将永久删除该图书, 是否继续?', '提示', {
 				confirmButtonText: '确定',
@@ -124,10 +124,38 @@ export default {
 							type: 'success',
 							message: '删除成功!'
 						});
+						this.gcSearchHandler();
 					}
 				})
 				.catch(() => {});
 		},
+
+		// 批量删除
+		async deleteAllHandler() {
+			const ids = this.searchList
+				.filter((item) => item.checked)
+				.map((item) => item.id)
+				.join(',');
+			if (ids.length > 0) {
+				this.$confirm('此操作将永久删除选中图书, 是否继续?', '提示', {
+					confirmButtonText: '确定',
+					cancelButtonText: '取消',
+					type: 'warning'
+				})
+					.then(async () => {
+						await deleteBatch({ ids });
+						this.$message({
+							type: 'success',
+							message: '删除成功!'
+						});
+						this.gcSearchHandler();
+					})
+					.catch(() => {});
+			} else {
+				this.$message('请选择需要删除的图书！');
+			}
+		},
+
 		goTSXXPJ(item) {
 			this.$store.commit('tushuguanli/CHANGE_ACTIVE_BOOK', item);
 			this.$router.push({ name: 'Tushuxinxibianji' });
@@ -151,34 +179,20 @@ export default {
 							class="flex1"
 							size="small"
 							placeholder="请输入书名"
+							@keyup.enter.native="gcSearchHandler"
 						/>
 					</el-col>
 					<el-col :span="5" class="input-wrap flex-center">
 						<span class="input-title col-1 f-s-14">ISBN:</span>
-						<el-input
-							v-model="isbn"
-							class="flex1"
-							size="small"
-							placeholder="请输入ISBN"
-						/>
+						<el-input v-model="isbn" class="flex1" size="small" placeholder="请输入ISBN" />
 					</el-col>
 					<el-col :span="5" class="input-wrap flex-center">
 						<span class="input-title col-1 f-s-14">条码:</span>
-						<el-input
-							v-model="tiaoma"
-							class="flex1"
-							size="small"
-							placeholder="请输入条码"
-						/>
+						<el-input v-model="tiaoma" class="flex1" size="small" placeholder="请输入条码" />
 					</el-col>
 					<el-col :span="5" class="input-wrap flex-center">
 						<span class="input-title col-1 f-s-14">图书状态:</span>
-						<el-select
-							v-model="gcStateValue"
-							class="m-r-20 flex1"
-							size="small"
-							placeholder="图书状态"
-						>
+						<el-select v-model="gcStateValue" class="m-r-20 flex1" size="small" placeholder="图书状态">
 							<el-option
 								v-for="item in gcStateList"
 								:key="item.value"
@@ -189,9 +203,7 @@ export default {
 					</el-col>
 					<el-col :span="4">
 						<div class="flex-center flex-right">
-							<el-button type="primary" size="small" @click="gcSearchHandler"
-								>查询</el-button
-							>
+							<el-button type="primary" size="small" @click="gcSearchHandler">查询</el-button>
 							<el-button size="small" @click="btnResetHandler">重置</el-button>
 						</div>
 					</el-col>
@@ -202,12 +214,7 @@ export default {
 					<el-col :span="5">
 						<div class="input-wrap flex-center">
 							<span class="input-title col-1 f-s-14">图书类别:</span>
-							<el-select
-								v-model="gcClassifyValue"
-								class="flex1"
-								size="small"
-								placeholder="图书类别"
-							>
+							<el-select v-model="gcClassifyValue" class="flex1" size="small" placeholder="图书类别">
 								<el-option
 									v-for="item in gcClassifyList"
 									:key="item.id"
@@ -220,12 +227,7 @@ export default {
 					<el-col :span="5">
 						<div class="input-wrap flex-center">
 							<span class="input-title col-1 f-s-14">馆藏地:</span>
-							<el-select
-								v-model="gcCollectionValue"
-								class="flex1"
-								size="small"
-								placeholder="馆藏地"
-							>
+							<el-select v-model="gcCollectionValue" class="flex1" size="small" placeholder="馆藏地">
 								<el-option
 									v-for="item in gcCollectionList"
 									:key="item.id"
@@ -243,21 +245,14 @@ export default {
 						<span class="f-s-12 col-3 m-l-10">搜索到{{ totalRow }}条记录</span>
 					</template>
 					<template #right-btn>
-						<el-button
-							plain
-							type="info"
-							size="small"
-							icon="el-icon-delete"
-							@click="deleteHandler"
-							>删除</el-button
-						>
+						<el-button plain type="info" size="small" icon="el-icon-delete" @click="deleteAllHandler">删除</el-button>
 					</template>
 				</TableHeaderCustomeBtn>
 			</section>
 			<section v-if="searchList.length > 0">
-				<div v-for="item in searchList" :key="item.id" class="list-item-wrap">
+				<div v-for="(item, index) in searchList" :key="item.id" class="list-item-wrap">
 					<div class="list-left flex-col relative">
-						<el-checkbox v-model="item.checked">1</el-checkbox>
+						<el-checkbox v-model="item.checked">{{ index + 1 }}</el-checkbox>
 						<img :src="item.coverimg" alt />
 						<div
 							:class="[
@@ -458,21 +453,9 @@ export default {
 							<span>操作</span>
 						</div>
 						<div class="flex-col p-t-20 flex-start">
-							<el-button type="text" icon="el-icon-tickets" @click="goJYJL(item.id)"
-								>借阅记录</el-button
-							>
-							<el-button
-								type="text"
-								icon="el-icon-edit-outline"
-								@click="goTSXXPJ(item)"
-								>编辑</el-button
-							>
-							<el-button
-								type="text"
-								icon="el-icon-delete"
-								@click="deleteHandler(item.id)"
-								>删除</el-button
-							>
+							<el-button type="text" icon="el-icon-tickets" @click="goJYJL(item.id)">借阅记录</el-button>
+							<el-button type="text" icon="el-icon-edit-outline" @click="goTSXXPJ(item)">编辑</el-button>
+							<el-button type="text" icon="el-icon-delete" @click="deleteHandler(item.id)">删除</el-button>
 						</div>
 					</div>
 				</div>

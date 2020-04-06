@@ -7,6 +7,7 @@ import {
 	borrowBookByArr,
 	returnBookByArr
 } from '@/api/liutongguanli';
+import { mapMutations, mapGetters } from 'vuex';
 export default {
 	name: 'Jiehuanshu',
 	components: {
@@ -33,11 +34,28 @@ export default {
 			// 还书
 			huanItem: '',
 			huanTableDataByItem: [],
-			huanItemSelectedListByItem: []
+			huanItemSelectedListByItem: [],
+
+			// 人脸识别
+			showDialogForFace: true
 		};
 	},
 	inject: ['reload'],
+	computed: {
+		...mapGetters(['photo'])
+	},
+	mounted() {
+		this.$nextTick(() => {
+			this.faceVideoHandler();
+		});
+	},
 	methods: {
+		...mapMutations({
+			initMedia: 'takephoto/INIT_GETUSERMEDIA',
+			showVideo: 'takephoto/SHOW_VIDEO',
+			takephoto: 'takephoto/TAKE_PHOTO',
+			closeCamera: 'takephoto/CLOSE_CAMERA'
+		}),
 		// 根据读者卡号获取图书数据
 		async initBookInfoByCardNum() {
 			const { data } = await getUserInfoByNum({
@@ -118,6 +136,21 @@ export default {
 
 		goBack() {
 			this.$router.go(-1);
+		},
+
+		// 人脸识别初始化
+		faceVideoHandler() {
+			this.initMedia();
+			this.showVideo(this.$refs.video);
+		},
+
+		// 人脸拍照
+		takephotoBtn() {
+			this.takephoto({
+				video: this.$refs.video,
+				canvas: this.$refs.canvasFace
+			});
+			this.closeCamera();
 		}
 	}
 };
@@ -141,9 +174,7 @@ export default {
 						</el-col>
 						<el-col :span="4">
 							<el-button type="primary" size="small">人脸识别</el-button>
-							<el-button type="primary" size="small" @click="initBookInfoByCardNum"
-								>确定</el-button
-							>
+							<el-button type="primary" size="small" @click="initBookInfoByCardNum">确定</el-button>
 						</el-col>
 
 						<el-col v-if="duzeUserInfo.name" :span="6" :offset="9">
@@ -152,10 +183,10 @@ export default {
 									<span class="f-s-14">读者姓名：</span>
 									<span class="f-s-18">{{ duzeUserInfo.name }}</span>
 								</div>
-								<span class="m-l-30 col-1 f-s-16"
-									>已借 {{ duzeUserInfo.borrow_count }} 本，可借
-									{{ duzeUserInfo.can_borrow_count }} 本</span
-								>
+								<span class="m-l-30 col-1 f-s-16">
+									已借 {{ duzeUserInfo.borrow_count }} 本，可借
+									{{ duzeUserInfo.can_borrow_count }} 本
+								</span>
 							</div>
 						</el-col>
 						<el-col v-else :span="6" :offset="9"></el-col>
@@ -218,9 +249,7 @@ export default {
 							/>
 						</el-col>
 						<el-col :span="4">
-							<el-button type="primary" size="small" @click="initBookInfoByItem"
-								>确定</el-button
-							>
+							<el-button type="primary" size="small" @click="initBookInfoByItem">确定</el-button>
 						</el-col>
 					</el-row>
 					<el-table
@@ -251,17 +280,14 @@ export default {
 											scope;
 										}
 									"
-									>删除</el-button
-								>
+								>删除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
 				</section>
 				<section class="h-100 flex-center">
 					<el-button type="default" @click="goBack">取消</el-button>
-					<el-button type="primary" class="w-200 m-l-20" @click="borrowBooksByArrHandler"
-						>借书</el-button
-					>
+					<el-button type="primary" class="w-200 m-l-20" @click="borrowBooksByArrHandler">借书</el-button>
 				</section>
 			</section>
 			<section v-if="activeIndex === 1">
@@ -278,9 +304,7 @@ export default {
 							/>
 						</el-col>
 						<el-col :span="4">
-							<el-button type="primary" size="small" @click="initHuanBookInfoByItem"
-								>确定</el-button
-							>
+							<el-button type="primary" size="small" @click="initHuanBookInfoByItem">确定</el-button>
 						</el-col>
 					</el-row>
 					<el-table
@@ -327,7 +351,7 @@ export default {
 											<el-dropdown-item divided>蚵仔煎</el-dropdown-item>
 										</el-dropdown-menu>
 									</template>
-								</el-dropdown> -->
+								</el-dropdown>-->
 							</template>
 						</el-table-column>
 						<el-table-column label="图书状态">
@@ -357,7 +381,7 @@ export default {
 											<el-dropdown-item divided>蚵仔煎</el-dropdown-item>
 										</el-dropdown-menu>
 									</template>
-								</el-dropdown> -->
+								</el-dropdown>-->
 							</template>
 						</el-table-column>
 						<el-table-column label="操作" fixed="right">
@@ -372,20 +396,28 @@ export default {
 											scope;
 										}
 									"
-									>删除</el-button
-								>
+								>删除</el-button>
 							</template>
 						</el-table-column>
 					</el-table>
 				</section>
 				<section class="h-100 flex-center">
 					<el-button type="default" @click="goBack">取消</el-button>
-					<el-button type="primary" class="w-200 m-l-20" @click="returnBooksByArrHandler"
-						>还书</el-button
-					>
+					<el-button type="primary" class="w-200 m-l-20" @click="returnBooksByArrHandler">还书</el-button>
 				</section>
 			</section>
 		</div>
+		<el-dialog title="提示" center :visible.sync="showDialogForFace" width="30%">
+			<canvas ref="canvasFace" class="canvas_face"></canvas>
+			<div class="flex-center flex-space-b">
+				<video ref="video" class="video_face" />
+				<img :src="photo || '//via.placeholder.com/240x180.png?text=Image'" class="img_face" alt />
+			</div>
+			<template #footer>
+				<el-button @click="showDialogForFace = false">取 消</el-button>
+				<el-button type="primary" @click="takephotoBtn">确 定</el-button>
+			</template>
+		</el-dialog>
 	</div>
 </template>
 
@@ -396,6 +428,24 @@ export default {
 	padding: 20px;
 	.btn-customer {
 		padding: 0;
+	}
+
+	.video_face {
+		width: 240px;
+		height: 240px;
+	}
+
+	.img_face {
+		width: 240px;
+		display: inline-block;
+	}
+
+	.canvas_face {
+		position: absolute;
+		opacity: 0;
+		left: 0;
+		top: 0;
+		z-index: -10;
 	}
 }
 </style>

@@ -1,6 +1,6 @@
 <script>
 import TableHeader from '@/components/TableHeader';
-import { getCollectionList } from '@/api/yunyingzhongxin';
+import { deviceBorrowData, excelDeviceBorrowData } from '@/api/yunyingzhongxin';
 import mixins from '@/utils/mixins-vue';
 export default {
 	name: 'Shebeishiyongtongji',
@@ -17,83 +17,34 @@ export default {
 			isIndeterminate: false,
 			// 开始日期结束日期
 			chooseDate: [],
-			// 7天或30天按钮
-			chooseSevenOrThirty: 'seven',
-			tableData: [
-				{
-					date: '2016-05-02',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-04',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-01',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				},
-				{
-					date: '2016-05-03',
-					name: '王小虎',
-					address: '1'
-				}
-			],
+			// 分页
+			tableData: [],
 			totalTableData: [
 				{
 					title: '合计',
-					name: '100',
-					address: '1'
+					online_count: 0,
+					borrow_count: 0,
+					login_count: 0,
+					return_count: 0
 				}
-			]
+			],
+			ids: []
 		};
 	},
+	watch: {
+		checkedGCList(newList) {
+			if (newList.length > 0) {
+				this.initDeviceTableData();
+			}
+		}
+	},
 	mounted() {
-		this.initCollectionList();
+		this.initDeviceBorrowListData();
 	},
 	methods: {
-		// 馆藏地列表
-		async initCollectionList() {
-			const { data } = await getCollectionList();
-			this.chooseDate = this.initChooseDate();
-			this.checkedGCList = data.map((item) => item.id);
-			this.guancangList = data;
-		},
 		// 馆藏地全选按钮控制
 		handleCheckAllChange(val) {
-			this.checkedGCList = val ? this.guancangList.map((item) => item.id) : [];
+			this.checkedGCList = val ? this.guancangList.map((item) => item.did) : [];
 			this.isIndeterminate = false;
 		},
 		handleCheckedCitiesChange(value) {
@@ -101,24 +52,58 @@ export default {
 			this.checkAll = checkedCount === this.guancangList.length;
 			this.isIndeterminate = checkedCount > 0 && checkedCount < this.guancangList.length;
 		},
-		// 日期选择
-		handlerDateOrDay(value) {
-			if (value === this.chooseSevenOrThirty) return;
-			const dayStrArr = ['seven', 'thirty'];
-			if (dayStrArr.includes(value)) {
-				this.chooseSevenOrThirty = value;
-				this.chooseDate = this.changeChooseDateHandler(value);
-			} else {
-				this.chooseSevenOrThirty = '';
-			}
+		// 设备列表
+		async initDeviceBorrowListData() {
+			const { data } = await deviceBorrowData();
+			this.chooseDate = this.initChooseDate();
+			this.checkedGCList = data.map((item) => item.did);
+			this.guancangList = data;
+			this.initDeviceTableData();
+		},
+
+		// tableData数据
+		async initDeviceTableData() {
+			const { data } = await deviceBorrowData({
+				dids: this.checkedGCList.join(',')
+			});
+			this.tableData = data;
+			this.initTotalTableData(data);
+		},
+
+		// 初始化合计数据
+		initTotalTableData(list) {
+			this.totalTableData = [
+				{
+					title: '合计',
+					online_count: list.reduce((a, item) => a + item.online_count, 0),
+					borrow_count: list.reduce((a, item) => a + item.borrow_count, 0),
+					login_count: list.reduce((a, item) => a + item.login_count, 0),
+					return_count: list.reduce((a, item) => a + item.return_count, 0)
+				}
+			];
+		},
+
+		// 重置按钮
+		resetHandlerBtn() {
+			this.checkedGCList = this.guancangList.map((item) => item.did);
 		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelDeviceBorrowData({ dids: this.ids.join(',') });
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelDeviceBorrowData();
+			this.downFile(data);
+		},
+		// 3、 用户选择导出
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.did);
 		}
 	}
 };
@@ -138,21 +123,18 @@ export default {
 						v-model="checkAll"
 						:indeterminate="isIndeterminate"
 						@change="handleCheckAllChange"
-						>全部设备</el-checkbox
-					>
-					<el-checkbox-group
-						v-model="checkedGCList"
-						class="m-l-20"
-						@change="handleCheckedCitiesChange"
-					>
-						<el-checkbox v-for="gc in guancangList" :key="gc" :label="gc">{{
-							gc
-						}}</el-checkbox>
+					>全部设备</el-checkbox>
+					<el-checkbox-group v-model="checkedGCList" class="m-l-20" @change="handleCheckedCitiesChange">
+						<el-checkbox v-for="gc in guancangList" :key="gc.did" :label="gc.did">
+							{{
+							gc.name
+							}}
+						</el-checkbox>
 					</el-checkbox-group>
 				</div>
 				<section class="search-btn">
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="initDeviceTableData">查询</el-button>
+					<el-button size="small" @click="resetHandlerBtn">重置</el-button>
 				</section>
 			</section>
 			<section>
@@ -163,15 +145,16 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
-					<el-table-column prop="date" label="设备名称" width="200"></el-table-column>
-					<el-table-column prop="date" label="累计运行天数"></el-table-column>
-					<el-table-column prop="name" label="离线时间"></el-table-column>
-					<el-table-column prop="address" label="登录次数"></el-table-column>
-					<el-table-column prop="address" label="借书次数"></el-table-column>
-					<el-table-column prop="address" label="归还次数"></el-table-column>
+					<el-table-column prop="name" label="设备名称" width="200"></el-table-column>
+					<el-table-column prop="online_count" label="累计运行天数"></el-table-column>
+					<el-table-column prop="gmt_create" label="离线时间"></el-table-column>
+					<el-table-column prop="login_count" label="登录次数"></el-table-column>
+					<el-table-column prop="borrow_count" label="借书次数"></el-table-column>
+					<el-table-column prop="return_count" label="归还次数"></el-table-column>
 				</el-table>
 			</section>
 		</div>
@@ -204,7 +187,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>累计运行天数</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.online_count }}</span>
 						</div>
 					</template>
 				</el-table-column>
@@ -215,7 +198,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>登录次数</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.login_count }}</span>
 						</div>
 					</template>
 				</el-table-column>
@@ -223,7 +206,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>借书次数</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.borrow_count }}</span>
 						</div>
 					</template>
 				</el-table-column>
@@ -231,7 +214,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>归还次数</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.return_count }}</span>
 						</div>
 					</template>
 				</el-table-column>

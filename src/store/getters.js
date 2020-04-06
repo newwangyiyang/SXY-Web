@@ -11,5 +11,6 @@ const getters = {
   activePrePath: state => state.routes.activePrePath,
   activeBookForUpdate: state => state.tushuguanli.activeBookForUpdate,
   activeUserForUpdate: state => state.yonghuguanli.activeUserForUpdate,
+  photo: state => state.takephoto.photo,
 }
 export default getters

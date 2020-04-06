@@ -75,7 +75,21 @@ export default {
 			this.totalRow = data.totalRow;
 			this.tableData = data.list;
 		},
-		handleCurrentChange(currentPage) {}
+		handleCurrentChange() {
+			this.initRecomandeData();
+		},
+		// 查询按钮
+		searchBtn() {
+			this.currentPage = 1;
+			this.initRecomandeData();
+		},
+		// 重置按钮
+		resetBtn() {
+			this.currentPage = 1;
+			this.jiangouren = '';
+			this.stateValue = '0';
+			this.chooseDate = this.initChooseDate();
+		}
 	}
 };
 </script>
@@ -85,15 +99,9 @@ export default {
 			<TableHeaderCustomeBtn title="图书荐购">
 				<template #right-btn>
 					<div>
-						<el-button plain type="info" size="small" icon="el-icon-refresh"
-							>状态</el-button
-						>
-						<el-button plain type="info" size="small" icon="el-icon-message"
-							>通知</el-button
-						>
-						<el-button plain type="info" size="small" icon="el-icon-delete"
-							>删除</el-button
-						>
+						<el-button plain type="info" size="small" icon="el-icon-refresh">状态</el-button>
+						<el-button plain type="info" size="small" icon="el-icon-message">通知</el-button>
+						<el-button plain type="info" size="small" icon="el-icon-delete">删除</el-button>
 					</div>
 				</template>
 			</TableHeaderCustomeBtn>
@@ -110,12 +118,7 @@ export default {
 						:clearable="false"
 						size="small"
 					></el-date-picker>
-					<el-input
-						v-model="jiangouren"
-						size="small"
-						class="w-200 m-l-20"
-						placeholder="请输入荐购人"
-					></el-input>
+					<el-input v-model="jiangouren" size="small" class="w-200 m-l-20" placeholder="请输入荐购人"></el-input>
 					<el-select v-model="stateValue" class="m-l-20 flex1" size="small">
 						<el-option
 							v-for="item in stateOptions"
@@ -126,8 +129,8 @@ export default {
 					</el-select>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="searchBtn">查询</el-button>
+					<el-button size="small" @click="resetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -186,8 +189,7 @@ export default {
 										scope;
 									}
 								"
-								>通知</el-button
-							>
+							>通知</el-button>
 							<el-button
 								type="text"
 								size="small"
@@ -197,8 +199,7 @@ export default {
 										scope;
 									}
 								"
-								>删除</el-button
-							>
+							>删除</el-button>
 						</template>
 					</el-table-column>
 					<el-table-column prop="operator" label="处理人"></el-table-column>

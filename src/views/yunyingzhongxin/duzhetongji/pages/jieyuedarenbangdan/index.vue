@@ -1,7 +1,7 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
-import { userborrowRankPage } from '@/api/yunyingzhongxin';
+import { userborrowRankPage, excelUserborrowRank } from '@/api/yunyingzhongxin';
 const limit = 10;
 export default {
 	name: 'Jieyuedarenbangdan',
@@ -18,7 +18,8 @@ export default {
 			borrowUserRankTableData: [],
 			currentPage: 1,
 			pageSize: limit,
-			totalRow: 0
+			totalRow: 0,
+			ids: []
 		};
 	},
 	watch: {
@@ -31,16 +32,26 @@ export default {
 		this.chooseDate = this.initChooseDate();
 	},
 	methods: {
-		handleCurrentChange(currentPage) {
+		handleCurrentChange() {
 			this.initBorrowUserRankData();
 		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelUserborrowRank({ ids: this.ids.join(',') });
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelUserborrowRank();
+			this.downFile(data);
+		},
+		// 3、 用户选择导出
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.uid);
 		},
 		// 日期选择
 		handlerDateOrDay(value) {
@@ -62,6 +73,25 @@ export default {
 			});
 			this.borrowUserRankTableData = data.list;
 			this.totalRow = data.totalRow;
+		},
+		// 查询按钮
+		searchBtn() {
+			this.currentPage = 1;
+			this.initBorrowUserRankData();
+		},
+		// 重置按钮
+		resetBtn() {
+			this.currentPage = 1;
+			this.chooseSevenOrThirty = 'seven';
+			this.chooseDate = this.initChooseDate();
+		},
+		// 根据状态判断性别
+		getSexByStatus(status) {
+			return {
+				0: '未知',
+				1: '男',
+				2: '女'
+			}[status];
 		}
 	}
 };
@@ -80,15 +110,13 @@ export default {
 						size="small"
 						:type="chooseSevenOrThirty === 'seven' ? 'primary' : 'default'"
 						@click="handlerDateOrDay('seven')"
-						>近7天</el-button
-					>
+					>近7天</el-button>
 					<el-button
 						size="small"
 						:type="chooseSevenOrThirty === 'thirty' ? 'primary' : 'default'"
 						class="m-r-10"
 						@click="handlerDateOrDay('thirty')"
-						>近30天</el-button
-					>
+					>近30天</el-button>
 					<el-date-picker
 						v-model="chooseDate"
 						type="daterange"
@@ -103,8 +131,8 @@ export default {
 					></el-date-picker>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="searchBtn">查询</el-button>
+					<el-button size="small" @click="resetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -115,13 +143,14 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
 					<el-table-column prop="name" label="姓名" width="100"></el-table-column>
 					<el-table-column label="性别" width="100">
 						<template v-slot="{ row }">
-							<span>{{ row.gender === 0 ? '男' : '女' }}</span>
+							<span>{{ getSexByStatus(row.gender)}}</span>
 						</template>
 					</el-table-column>
 					<el-table-column prop="idno" label="身份证号"></el-table-column>
@@ -139,8 +168,7 @@ export default {
 										row;
 									}
 								"
-								>查看</el-button
-							>
+							>查看</el-button>
 						</template>
 					</el-table-column>
 				</el-table>

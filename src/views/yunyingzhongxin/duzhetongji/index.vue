@@ -134,8 +134,7 @@ export default {
 											chooseSevenOrThirty === 'seven' ? 'primary' : 'default'
 										"
 										@click="handlerDateOrDay('seven')"
-										>近7天</el-button
-									>
+									>近7天</el-button>
 									<el-button
 										size="small"
 										:type="
@@ -143,8 +142,7 @@ export default {
 										"
 										class="m-r-10"
 										@click="handlerDateOrDay('thirty')"
-										>近30天</el-button
-									>
+									>近30天</el-button>
 									<el-date-picker
 										v-model="chooseDate"
 										type="daterange"
@@ -174,15 +172,8 @@ export default {
 									stripe
 									style="width: 100%"
 								>
-									<el-table-column
-										prop="dept_name"
-										label="用户组"
-										width="280"
-									></el-table-column>
-									<el-table-column
-										prop="avtive_count"
-										label="今日活跃"
-									></el-table-column>
+									<el-table-column prop="dept_name" label="用户组" width="280"></el-table-column>
+									<el-table-column prop="avtive_count" label="今日活跃"></el-table-column>
 									<el-table-column prop="pre" label="活跃占比"></el-table-column>
 								</el-table>
 							</div>
@@ -213,11 +204,7 @@ export default {
 						</div>
 					</div>
 					<el-row :gutter="20">
-						<el-col
-							v-for="(item, index) in borrowUserRank"
-							:key="item.avatar"
-							:span="6"
-						>
+						<el-col v-for="(item, index) in borrowUserRank" :key="item.name" :span="6">
 							<JYBTCard :index="index + 1" :item="item" />
 						</el-col>
 					</el-row>

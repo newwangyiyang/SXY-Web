@@ -1,7 +1,7 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
-import { gcDetail, borrowList } from '@/api/tushuguanli';
+import { gcDetail, borrowList, excelBorrowList } from '@/api/tushuguanli';
 const limit = 10;
 export default {
 	name: 'Jieyuejilu',
@@ -24,7 +24,8 @@ export default {
 
 			chooseDate: '',
 			name: '',
-			cardNum: ''
+			cardNum: '',
+			ids: []
 		};
 	},
 	mounted() {
@@ -44,6 +45,7 @@ export default {
 		async initBorrowTableData() {
 			const { data } = await borrowList(this.formatParams());
 			this.tableData = data.list;
+			this.totalRow = data.totalRow;
 		},
 		// 格式化参数
 		formatParams() {
@@ -57,14 +59,47 @@ export default {
 			};
 		},
 
-		handleCurrentChange(currentPage) {},
+		// 借阅状态文本
+		getStatusText(status) {
+			return {
+				0: '借出',
+				1: '归还',
+				2: '超借',
+				3: '逾期',
+				4: '超借逾期'
+			}[status];
+		},
+
+		handleCurrentChange(currentPage) {
+			this.initBorrowTableData();
+		},
+
+		handleResetBtn() {
+			this.name = this.cardNum = '';
+			this.chooseDate = this.initChooseDate();
+			this.currentPage = 1;
+			this.initBorrowTableData();
+		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelBorrowList({
+					book_id: this.bookId,
+					borrow_ids: this.ids.join(',')
+				});
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelBorrowList({ book_id: this.bookId });
+			this.downFile(data);
+		},
+		// 3、 用户选择导出
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.borrow_id);
 		}
 	}
 };
@@ -90,22 +125,12 @@ export default {
 						:clearable="false"
 						size="small"
 					></el-date-picker>
-					<el-input
-						v-model="name"
-						size="small"
-						class="w-200 m-l-20"
-						placeholder="请输入姓名"
-					></el-input>
-					<el-input
-						v-model="cardNum"
-						size="small"
-						class="w-200 m-l-20"
-						placeholder="请输入读者卡号"
-					></el-input>
+					<el-input v-model="name" size="small" class="w-200 m-l-20" placeholder="请输入姓名"></el-input>
+					<el-input v-model="cardNum" size="small" class="w-200 m-l-20" placeholder="请输入读者卡号"></el-input>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="initBorrowTableData">查询</el-button>
+					<el-button size="small" @click="handleResetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -116,18 +141,20 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
 					<el-table-column prop="name" label="姓名" width="100"></el-table-column>
-					<el-table-column prop="date" label="读者卡号"></el-table-column>
-					<el-table-column prop="address" label="用户组"></el-table-column>
-					<el-table-column prop="address" label="借阅时间"></el-table-column>
-					<el-table-column prop="address" label="到期时间"></el-table-column>
-					<el-table-column prop="address" label="归还时间"></el-table-column>
+					<el-table-column prop="card_number" label="读者卡号"></el-table-column>
+					<el-table-column prop="dept_name" label="用户组"></el-table-column>
+					<el-table-column prop="gmt_borrow" label="借阅时间"></el-table-column>
+					<el-table-column prop="gmt_expire" label="到期时间"></el-table-column>
+					<el-table-column prop="gmt_return" label="归还时间"></el-table-column>
 					<el-table-column label="借阅状态">
-						<template v-slot="scope">
-							<el-dropdown>
+						<template v-slot="{ row }">
+							{{ getStatusText(row.status) }}
+							<!-- <el-dropdown>
 								<span
 									class="col-6 f-s-12"
 									@click="
@@ -148,22 +175,22 @@ export default {
 										<el-dropdown-item divided>蚵仔煎</el-dropdown-item>
 									</el-dropdown-menu>
 								</template>
-							</el-dropdown>
+							</el-dropdown>-->
 						</template>
 					</el-table-column>
-					<el-table-column prop="address" label="处理人"></el-table-column>
+					<el-table-column prop="operator" label="处理人"></el-table-column>
 				</el-table>
 			</section>
 			<section class="p-r-20 p-b-20 flex-center flex-space-b">
 				<el-pagination
 					:current-page.sync="currentPage"
-					:page-size="100"
+					:page-size="pageSize"
 					layout="prev, pager, next, jumper"
-					:total="999"
+					:total="totalRow"
 					background
 					@current-change="handleCurrentChange"
 				></el-pagination>
-				<span class="f-s-12 col-2">共123条记录</span>
+				<span class="f-s-12 col-2">共{{ totalRow }}条记录</span>
 			</section>
 		</div>
 	</div>

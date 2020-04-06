@@ -8,6 +8,9 @@ import user from './modules/user'
 import tushuguanli from './modules/tushuguanli'
 
 import yonghuguanli from './modules/yonghuguanli'
+
+import takephoto from './modules/takephoto'
+
 import routes from './modules/routes';
 
 Vue.use(Vuex)
@@ -19,7 +22,7 @@ const store = new Vuex.Store({
     settings,
     user,
     tushuguanli,
-
+    takephoto,
     yonghuguanli,
     routes
   },

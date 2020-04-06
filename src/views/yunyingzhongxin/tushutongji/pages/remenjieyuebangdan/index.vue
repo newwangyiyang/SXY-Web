@@ -1,7 +1,7 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
-import { bookBorrowRankPage } from '@/api/yunyingzhongxin';
+import { bookBorrowRankPage, excelBookBorrowRank } from '@/api/yunyingzhongxin';
 const limit = 10;
 export default {
 	name: 'Remenjieyuebangdan',
@@ -20,7 +20,8 @@ export default {
 			pageSize: limit,
 			// 总数
 			totalRow: 0,
-			currentPage: 1
+			currentPage: 1,
+			ids: []
 		};
 	},
 	watch: {
@@ -38,12 +39,18 @@ export default {
 			this.initHotBorrowDataList();
 		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelBookBorrowRank({ ids: this.ids.join(',') });
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelBookBorrowRank();
+			this.downFile(data);
 		},
 		// 日期选择
 		handlerDateOrDay(value) {
@@ -66,6 +73,21 @@ export default {
 			});
 			this.hotBorrowData = data.list;
 			this.totalRow = data.totalRow;
+		},
+		// 查询按钮
+		searchBtn() {
+			this.currentPage = 1;
+			this.initHotBorrowDataList();
+		},
+		// 重置按钮
+		resetBtn() {
+			this.currentPage = 1;
+			this.chooseSevenOrThirty = 'seven';
+			this.chooseDate = this.initChooseDate();
+		},
+		// 用户选择
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.id);
 		}
 	}
 };
@@ -84,15 +106,13 @@ export default {
 						size="small"
 						:type="chooseSevenOrThirty === 'seven' ? 'primary' : 'default'"
 						@click="handlerDateOrDay('seven')"
-						>近7天</el-button
-					>
+					>近7天</el-button>
 					<el-button
 						size="small"
 						:type="chooseSevenOrThirty === 'thirty' ? 'primary' : 'default'"
 						class="m-r-10"
 						@click="handlerDateOrDay('thirty')"
-						>近30天</el-button
-					>
+					>近30天</el-button>
 					<el-date-picker
 						v-model="chooseDate"
 						type="daterange"
@@ -107,8 +127,8 @@ export default {
 					></el-date-picker>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="searchBtn">查询</el-button>
+					<el-button size="small" @click="resetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -119,6 +139,7 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
@@ -139,8 +160,7 @@ export default {
 										row;
 									}
 								"
-								>查看</el-button
-							>
+							>查看</el-button>
 						</template>
 					</el-table-column>
 				</el-table>

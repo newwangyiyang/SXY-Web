@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-
+import requestDown from '@/utils/requestDown';
 // 借阅列表 /admin/v2/borrow/search
 export const borrowSearchList = (params) => {
   return request({
@@ -42,5 +42,15 @@ export const returnBookByArr = (params) => {
     url: '/admin/v2/borrow/returnBook',
     method: 'post',
     data: params
+  })
+}
+
+// 导出: 借阅列表 /admin/v2/borrow/excelList
+export const excelBorrowList = (params) => {
+  return requestDown({
+    url: '/admin/v2/borrow/excelList',
+    method: 'post',
+    data: params,
+    responseType: 'blob'
   })
 }

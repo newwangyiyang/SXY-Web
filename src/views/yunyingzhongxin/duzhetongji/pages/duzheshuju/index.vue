@@ -1,7 +1,7 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
-import { borrowUser } from '@/api/yunyingzhongxin';
+import { borrowUser, excelUser } from '@/api/yunyingzhongxin';
 const limit = 10;
 export default {
 	name: 'Duzhejieyueshuju',
@@ -19,13 +19,16 @@ export default {
 			totalTableData: [
 				{
 					title: '合计',
-					name: '100',
-					address: '1'
+					user_sum: 0,
+					user_add_count: 0,
+					user_active_count: 0,
+					user_abnormal_count: 0
 				}
 			],
 			currentPage: 5,
 			pageSize: limit,
-			totalRow: 0
+			totalRow: 0,
+			ids: []
 		};
 	},
 	computed: {
@@ -47,17 +50,37 @@ export default {
 			const { data } = await borrowUser(this.initDateParams(this.chooseDate));
 			this.totalRow = data.totalRow;
 			this.borrowTableData = data.list;
+			this.initTotalTableDataHandler(data.list);
 		},
-		handleCurrentChange() {
+		// 分页按钮点击
+		handleCurrentChange(currentPage) {
 			this.initBorrowTableData();
 		},
+		// 初始化totalTableData
+		initTotalTableDataHandler(list) {
+			this.totalTableData = [
+				{
+					title: '合计',
+					user_sum: list.reduce((a, item) => a + item.user_sum, 0),
+					user_add_count: list.reduce((a, item) => a + item.user_add_count, 0),
+					user_active_count: list.reduce((a, item) => a + item.user_active_count, 0),
+					user_abnormal_count: list.reduce((a, item) => a + item.user_abnormal_count, 0)
+				}
+			];
+		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelUser({ ids: this.ids.join(',') });
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelUser();
+			this.downFile(data);
 		},
 		// 日期选择
 		handlerDateOrDay(value) {
@@ -69,6 +92,18 @@ export default {
 			} else {
 				this.chooseSevenOrThirty = '';
 			}
+		},
+		searchBtn() {
+			this.currentPage = 1;
+			this.initBorrowTableData();
+		},
+		resetBtn() {
+			this.currentPage = 1;
+			this.chooseSevenOrThirty = 'seven';
+			this.chooseDate = this.initChooseDate();
+		},
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.id);
 		}
 	}
 };
@@ -87,15 +122,13 @@ export default {
 						size="small"
 						:type="chooseSevenOrThirty === 'seven' ? 'primary' : 'default'"
 						@click="handlerDateOrDay('seven')"
-						>近7天</el-button
-					>
+					>近7天</el-button>
 					<el-button
 						size="small"
 						:type="chooseSevenOrThirty === 'thirty' ? 'primary' : 'default'"
 						class="m-r-10"
 						@click="handlerDateOrDay('thirty')"
-						>近30天</el-button
-					>
+					>近30天</el-button>
 					<el-date-picker
 						v-model="chooseDate"
 						type="daterange"
@@ -110,8 +143,8 @@ export default {
 					></el-date-picker>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="searchBtn">查询</el-button>
+					<el-button size="small" @click="resetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -122,6 +155,7 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
@@ -135,13 +169,13 @@ export default {
 			<section class="page-wrap p-r-20 flex-center flex-space-b">
 				<el-pagination
 					:current-page.sync="currentPage"
-					:page-size="100"
+					:page-size="pageSize"
 					layout="prev, pager, next, jumper"
-					:total="999"
+					:total="totalRow"
 					background
 					@current-change="handleCurrentChange"
 				></el-pagination>
-				<span class="f-s-12 col-2">共123条记录</span>
+				<span class="f-s-12 col-2">共{{ totalRow }}条记录</span>
 			</section>
 		</div>
 		<section class="total-table-wrap bg-5 m-t-20">
@@ -167,15 +201,17 @@ export default {
 					</template>
 				</el-table-column>
 				<el-table-column width="200">
-					<template>{{
+					<template>
+						{{
 						getTotalDateStr ? `${getTotalDateStr[0]}至${getTotalDateStr[1]}` : '-'
-					}}</template>
+						}}
+					</template>
 				</el-table-column>
 				<el-table-column>
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>用户总量</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.user_sum }}</span>
 						</div>
 					</template>
 				</el-table-column>
@@ -183,7 +219,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>用户新增</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.user_add_count }}</span>
 						</div>
 					</template>
 				</el-table-column>
@@ -191,7 +227,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>用户活跃量</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.user_active_count }}</span>
 						</div>
 					</template>
 				</el-table-column>
@@ -199,7 +235,7 @@ export default {
 					<template v-slot="{ row }">
 						<div class="flex-center flex-col flex-space-a">
 							<span>状态异常</span>
-							<span class="f-s-20">{{ row.name }}</span>
+							<span class="f-s-20">{{ row.user_abnormal_count }}</span>
 						</div>
 					</template>
 				</el-table-column>

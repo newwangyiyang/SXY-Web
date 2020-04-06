@@ -1,4 +1,5 @@
 import request from '@/utils/request';
+import requestDown from '@/utils/requestDown';
 // 馆藏地列表 /admin/v2/stat/getCollectionList
 export const getCollectionList = () => {
   return request({
@@ -145,5 +146,121 @@ export const borrowUser = (params) => {
     url: '/admin/v2/stat/user',
     method: 'get',
     params
+  })
+}
+
+// 读者用户组列表 /admin/v2/user/deptList
+export const yyzxDeptList = () => {
+  return request({
+    method: 'get',
+    url: '/admin/v2/user/deptList'
+  })
+}
+
+
+// 读者用户活跃 /admin/v2/stat/userDept
+export const userDept = (params) => {
+  return request({
+    url: '/admin/v2/stat/userDept',
+    method: 'get',
+    params
+  })
+}
+
+// 异常列表分页 /admin/v2/stat/deviceBreak
+export const deviceBreakPage = (params) => {
+  return request({
+    url: '/admin/v2/stat/deviceBreak',
+    method: 'get',
+    params
+  })
+}
+
+// 设备列表 /admin/v2/stat/deviceBorrowData
+export const deviceBorrowData = (params) => {
+  return request({
+    url: '/admin/v2/stat/deviceBorrowData',
+    method: 'get',
+    params
+  })
+}
+
+// 导出: 图书分类统计 /admin/v2/stat/excelClassify
+export const excelClassify = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelClassify',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+};
+
+// 导出: 热门借阅榜单 /admin/v2/stat/excelBookBorrowRank
+export const excelBookBorrowRank = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelBookBorrowRank',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+}
+
+// 导出: 图书借阅数据 /admin/v2/stat/excelCollection
+export const excelCollection = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelCollection',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+}
+
+// 导出: 读者借阅数据 /admin/v2/stat/excelUser
+export const excelUser = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelUser',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+}
+
+// 导出: 读者活跃 /admin/v2/stat/excelUserDept
+export const excelUserDept = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelUserDept',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+}
+
+// 导出: 借阅达人表单 /admin/v2/stat/excelUserborrowRank
+export const excelUserborrowRank = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelUserborrowRank',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+}
+
+// 导出: 设备使用统计 /admin/v2/stat/excelDeviceBorrowData
+export const excelDeviceBorrowData = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelDeviceBorrowData',
+    method: 'post',
+    responseType: 'blob',
+    data: params
+  })
+}
+
+// 导出: 设备异常 /admin/v2/stat/excelDeviceBreak
+export const excelDeviceBreak = (params) => {
+  return requestDown({
+    url: '/admin/v2/stat/excelDeviceBreak',
+    method: 'post',
+    responseType: 'blob',
+    data: params
   })
 }

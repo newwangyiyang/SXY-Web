@@ -40,7 +40,6 @@ export default {
 			}[type];
 		},
 		handleCurrentChange(currentPage) {
-			if (this.currentPage === currentPage) return;
 			this.initMessageList();
 		},
 

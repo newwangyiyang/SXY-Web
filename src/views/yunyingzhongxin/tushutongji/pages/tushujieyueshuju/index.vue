@@ -1,6 +1,6 @@
 <script>
 import TableHeader from '@/components/TableHeader';
-import { getCollectionList, collectionPage } from '@/api/yunyingzhongxin';
+import { getCollectionList, collectionPage, excelCollection } from '@/api/yunyingzhongxin';
 import mixins from '@/utils/mixins-vue';
 const limit = 10;
 export default {
@@ -35,7 +35,8 @@ export default {
 					borrow_abnormal_count: 0
 				}
 			],
-			currentPage: 1
+			currentPage: 1,
+			ids: []
 		};
 	},
 	computed: {
@@ -66,7 +67,7 @@ export default {
 			this.checkedGCList = data.map((item) => item.id);
 			this.guancangList = data;
 		},
-		handleCurrentChange(currentPage) {
+		handleCurrentChange() {
 			this.initBorrowTableData();
 		},
 
@@ -100,12 +101,22 @@ export default {
 			];
 		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelCollection({ ids: this.ids.join(',') });
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelCollection();
+			this.downFile(data);
+		},
+		// 3、用户选择导出分类
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.id);
 		},
 		// 馆藏地全选按钮控制
 		handleCheckAllChange(val) {
@@ -127,6 +138,16 @@ export default {
 			} else {
 				this.chooseSevenOrThirty = '';
 			}
+		},
+		// 查询按钮
+		searchBtn() {
+			this.currentPage = 1;
+			this.initBorrowTableData();
+		},
+		resetBtn() {
+			this.currentPage = 1;
+			this.chooseDate = this.initChooseDate();
+			this.chooseSevenOrThirty = 'seven';
 		}
 	}
 };
@@ -146,16 +167,13 @@ export default {
 						v-model="checkAll"
 						:indeterminate="isIndeterminate"
 						@change="handleCheckAllChange"
-						>全部馆藏地</el-checkbox
-					>
-					<el-checkbox-group
-						v-model="checkedGCList"
-						class="m-l-20"
-						@change="handleCheckedCitiesChange"
-					>
-						<el-checkbox v-for="gc in guancangList" :key="gc.id" :label="gc.id">{{
+					>全部馆藏地</el-checkbox>
+					<el-checkbox-group v-model="checkedGCList" class="m-l-20" @change="handleCheckedCitiesChange">
+						<el-checkbox v-for="gc in guancangList" :key="gc.id" :label="gc.id">
+							{{
 							gc.name
-						}}</el-checkbox>
+							}}
+						</el-checkbox>
 					</el-checkbox-group>
 				</div>
 			</section>
@@ -165,15 +183,13 @@ export default {
 						size="small"
 						:type="chooseSevenOrThirty === 'seven' ? 'primary' : 'default'"
 						@click="handlerDateOrDay('seven')"
-						>近7天</el-button
-					>
+					>近7天</el-button>
 					<el-button
 						size="small"
 						:type="chooseSevenOrThirty === 'thirty' ? 'primary' : 'default'"
 						class="m-r-10"
 						@click="handlerDateOrDay('thirty')"
-						>近30天</el-button
-					>
+					>近30天</el-button>
 					<el-date-picker
 						v-model="chooseDate"
 						type="daterange"
@@ -188,8 +204,8 @@ export default {
 					></el-date-picker>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="searchBtn">查询</el-button>
+					<el-button size="small" @click="resetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -200,6 +216,7 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>
@@ -209,10 +226,7 @@ export default {
 					<el-table-column prop="return_count" label="归还数量"></el-table-column>
 					<el-table-column prop="book_rest_count" label="图书余量"></el-table-column>
 					<el-table-column prop="book_count" label="图书总量"></el-table-column>
-					<el-table-column
-						prop="borrow_abnormal_count"
-						label="异常借阅"
-					></el-table-column>
+					<el-table-column prop="borrow_abnormal_count" label="异常借阅"></el-table-column>
 				</el-table>
 			</section>
 			<section class="page-wrap p-r-20 flex-center flex-space-b">

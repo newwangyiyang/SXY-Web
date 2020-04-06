@@ -1,7 +1,7 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import mixins from '@/utils/mixins-vue';
-import { classifyList, classifyPage } from '@/api/yunyingzhongxin';
+import { classifyList, classifyPage, excelClassify } from '@/api/yunyingzhongxin';
 const limit = 10;
 export default {
 	name: 'Tushufenleitongji',
@@ -17,7 +17,8 @@ export default {
 			pageSize: limit,
 			totalRow: 0,
 			options: [],
-			value: ''
+			value: '',
+			ids: []
 		};
 	},
 	watch: {
@@ -56,13 +57,36 @@ export default {
 		handleCurrentChange() {
 			this.initClassfyTableData();
 		},
+		// 查询按钮
+		searchBtn() {
+			this.currentPage = 1;
+			this.initClassfyTableData();
+		},
+		// 重置按钮
+		resetBtn() {
+			this.currentPage = 1;
+			this.chooseDate = this.initChooseDate();
+			this.value = '';
+		},
 		// 1、导出当前按钮
-		handlerExportSelected() {
-			console.log('handlerExportSelected');
+		async handlerExportSelected() {
+			if (this.ids.length <= 0) {
+				this.$message('请选择你需要的导出内容');
+			} else {
+				const { data } = await excelClassify({
+					ids: this.ids.join(',')
+				});
+				this.downFile(data);
+			}
 		},
 		// 2、导出全部按钮
-		handlerExportAll() {
-			console.log('handlerExportAll');
+		async handlerExportAll() {
+			const { data } = await excelClassify({});
+			this.downFile(data);
+		},
+		// 3、用户选择导出分类
+		handleSelectionChange(selectList) {
+			this.ids = selectList.map((item) => item.id);
 		}
 	}
 };
@@ -78,12 +102,7 @@ export default {
 			<section class="p-20 flex-center flex-space-b">
 				<section>
 					<el-select v-model="value" class="m-r-20" size="small" placeholder="图书类别">
-						<el-option
-							v-for="item in options"
-							:key="item.id"
-							:label="item.name"
-							:value="item.id"
-						></el-option>
+						<el-option v-for="item in options" :key="item.id" :label="item.name" :value="item.id"></el-option>
 					</el-select>
 					<el-date-picker
 						v-model="chooseDate"
@@ -98,8 +117,8 @@ export default {
 					></el-date-picker>
 				</section>
 				<section>
-					<el-button type="primary" size="small">查询</el-button>
-					<el-button size="small">重置</el-button>
+					<el-button type="primary" size="small" @click="searchBtn">查询</el-button>
+					<el-button size="small" @click="resetBtn">重置</el-button>
 				</section>
 			</section>
 			<section class="p-b-20">
@@ -110,6 +129,7 @@ export default {
 					highlight-current-row
 					border
 					style="width: 100%"
+					@selection-change="handleSelectionChange"
 				>
 					<el-table-column type="selection" width="55"></el-table-column>
 					<el-table-column type="index" width="55" label="序号"></el-table-column>

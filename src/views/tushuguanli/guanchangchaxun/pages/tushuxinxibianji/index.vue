@@ -1,7 +1,7 @@
 <script>
 import TableHeader from '@/components/TableHeader';
 import { mapGetters } from 'vuex';
-import { collectionList, classifyList, bookUpdate } from '@/api/tushuguanli';
+import { collectionList, classifyList, bookUpdate, coverImgUpload } from '@/api/tushuguanli';
 export default {
 	name: 'Tushuxinxibianji',
 	components: {
@@ -34,7 +34,8 @@ export default {
 				}
 			],
 			stateValue: '',
-			imageUrl: ''
+			// 是否已编辑
+			isEdited: false
 		};
 	},
 	computed: {
@@ -60,12 +61,34 @@ export default {
 
 		// 图书基本信息更新
 		async updateBookDataHandler() {
-			const { data } = await bookUpdate({ book_id: this.bookData.id, ...this.bookData });
-			console.log(data);
+			if (!this.isAllRequiredParams()) {
+				this.$message('您还有带*号的必填项信息未填写');
+				return;
+			}
+			await bookUpdate({ book_id: this.bookData.id, ...this.bookData });
+			this.isEdited = true;
+			this.$message({ type: 'success', message: '图书信息更新成功！' });
 		},
 
-		handleAvatarSuccess(file) {
-			this.imageUrl = URL.createObjectURL(file.raw);
+		// 图新录入信息必填项判断
+		isAllRequiredParams() {
+			const bookData = this.bookData;
+			const requiredList = [
+				bookData.item,
+				bookData.isbn,
+				bookData.title,
+				bookData.classify_id,
+				bookData.collection_id,
+				bookData.coverimg
+			];
+			return requiredList.every(Boolean);
+		},
+
+		async handleAvatarSuccess(file) {
+			const formData = new FormData();
+			formData.append('file', file.raw);
+			const { url } = await coverImgUpload(formData);
+			this.bookData.coverimg = url;
 		},
 		goBack() {
 			this.$router.go(-1);
@@ -85,12 +108,7 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-input
-							v-model="bookData.item"
-							class="flex1"
-							size="small"
-							placeholder="请输入条码号"
-						/>
+						<el-input v-model="bookData.item" class="flex1" size="small" placeholder="请输入条码号" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">
@@ -98,12 +116,7 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-input
-							v-model="bookData.isbn"
-							class="flex1"
-							size="small"
-							placeholder="请输入ISBN"
-						/>
+						<el-input v-model="bookData.isbn" class="flex1" size="small" placeholder="请输入ISBN" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">
@@ -111,39 +124,19 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-input
-							v-model="bookData.title"
-							class="flex1"
-							size="small"
-							placeholder="请输入书名"
-						/>
+						<el-input v-model="bookData.title" class="flex1" size="small" placeholder="请输入书名" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">作者:</span>
-						<el-input
-							v-model="bookData.author"
-							class="flex1"
-							size="small"
-							placeholder="请输入作者"
-						/>
+						<el-input v-model="bookData.author" class="flex1" size="small" placeholder="请输入作者" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">出版社:</span>
-						<el-input
-							v-model="bookData.publisher"
-							class="flex1"
-							size="small"
-							placeholder="请输入出版社"
-						/>
+						<el-input v-model="bookData.publisher" class="flex1" size="small" placeholder="请输入出版社" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">价格:</span>
-						<el-input
-							v-model="bookData.price"
-							class="flex1"
-							size="small"
-							placeholder="请输入价格"
-						/>
+						<el-input v-model="bookData.price" class="flex1" size="small" placeholder="请输入价格" />
 					</section>
 				</el-col>
 				<el-col :span="6">
@@ -153,64 +146,29 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-select
-							v-model="bookData.classify_id"
-							class="flex1"
-							size="small"
-							placeholder="图书类别"
-						>
-							<el-option
-								v-for="item in gcClassifyList"
-								:key="item.id"
-								:label="item.name"
-								:value="item.id"
-							></el-option>
+						<el-select v-model="bookData.classify_id" class="flex1" size="small" placeholder="图书类别">
+							<el-option v-for="item in gcClassifyList" :key="item.id" :label="item.name" :value="item.id"></el-option>
 						</el-select>
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">索书号:</span>
-						<el-input
-							v-model="bookData.callno"
-							class="flex1"
-							size="small"
-							placeholder="请输入索书号"
-						/>
+						<el-input v-model="bookData.callno" class="flex1" size="small" placeholder="请输入索书号" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">出版年份:</span>
-						<el-input
-							v-model="bookData.press_date"
-							class="flex1"
-							size="small"
-							placeholder="请输入出版年份"
-						/>
+						<el-input v-model="bookData.press_date" class="flex1" size="small" placeholder="请输入出版年份" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">页数:</span>
-						<el-input
-							v-model="bookData.total_page"
-							class="flex1"
-							size="small"
-							placeholder="请输入页数"
-						/>
+						<el-input v-model="bookData.total_page" class="flex1" size="small" placeholder="请输入页数" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">尺寸:</span>
-						<el-input
-							v-model="bookData.size"
-							class="flex1"
-							size="small"
-							placeholder="请输入尺寸"
-						/>
+						<el-input v-model="bookData.size" class="flex1" size="small" placeholder="请输入尺寸" />
 					</section>
 					<section class="flex-center m-t-20">
 						<span class="input-title col-1 f-s-14">主题词:</span>
-						<el-input
-							v-model="bookData.theme"
-							class="flex1"
-							size="small"
-							placeholder="请输入主题词"
-						/>
+						<el-input v-model="bookData.theme" class="flex1" size="small" placeholder="请输入主题词" />
 					</section>
 				</el-col>
 				<el-col :span="6">
@@ -220,12 +178,7 @@ export default {
 							<i class="f-s-16">*</i>
 							:
 						</span>
-						<el-select
-							v-model="bookData.collection_id"
-							class="flex1"
-							size="small"
-							placeholder="馆藏地"
-						>
+						<el-select v-model="bookData.collection_id" class="flex1" size="small" placeholder="馆藏地">
 							<el-option
 								v-for="item in gcCollectionList"
 								:key="item.id"
@@ -274,10 +227,12 @@ export default {
 				</el-col>
 			</el-row>
 			<section class="h-100 flex-center">
-				<el-button type="default" @click="goBack">取消</el-button>
-				<el-button type="primary" class="w-200 m-l-20" @click="updateBookDataHandler"
-					>确定</el-button
-				>
+				<el-button type="default" @click="goBack">
+					{{
+					isEdited ? '返回' : '取消'
+					}}
+				</el-button>
+				<el-button type="primary" class="w-200 m-l-20" @click="updateBookDataHandler">确定</el-button>
 			</section>
 		</div>
 	</div>

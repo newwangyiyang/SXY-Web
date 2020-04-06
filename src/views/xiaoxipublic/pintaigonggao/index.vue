@@ -30,7 +30,6 @@ export default {
 			this.totalRow = data.totalRow;
 		},
 		handleCurrentChange(currentPage) {
-			if (this.currentPage === currentPage) return;
 			this.initNoticeList();
 		},
 		// 根据状态获取状态文本

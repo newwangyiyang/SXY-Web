@@ -94,7 +94,20 @@ const mixin = {
         startdate: chooseDate[0],
         enddate: chooseDate[1]
       }
-    }
+    },
+    downFile(data) {
+      const blob = new Blob([data], {
+        type: 'application/vnd.ms-excel'
+      });
+      const elink = document.createElement('a')
+      elink.download = `${Number(new Date())}.xlsx`;
+      elink.style.display = 'none'
+      elink.href = URL.createObjectURL(blob)
+      document.body.appendChild(elink)
+      elink.click()
+      URL.revokeObjectURL(elink.href)
+      document.body.removeChild(elink)
+    },
   }
 }
 
